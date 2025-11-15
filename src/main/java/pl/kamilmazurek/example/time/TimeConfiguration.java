@@ -12,8 +12,8 @@ public class TimeConfiguration {
     }
 
     @Bean
-    public TimeFormatter timeFormatter(TimeProvider timeProvider) {
-        return new TimeFormatter(timeProvider);
+    public TimeLogger timeFormatter(TimeProvider timeProvider) {
+        return new TimeLogger(timeProvider);
     }
 
 }
