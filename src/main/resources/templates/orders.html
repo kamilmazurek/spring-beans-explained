@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Valid Orders</title>
+</head>
+<body>
+<h1>Valid Orders</h1>
+<ul>
+    <li th:each="order : ${orders}">
+        Order ID: <span th:text="${order.id}"></span>, Total: <span th:text="${order.totalAmount}"></span>
+    </li>
+</ul>
+</body>
+</html>

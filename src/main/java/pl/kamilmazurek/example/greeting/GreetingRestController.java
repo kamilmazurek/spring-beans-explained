@@ -6,11 +6,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/greetings")
-public class GreetingController {
+public class GreetingRestController {
 
     private final Greeter greeter;
 
-    public GreetingController(Greeter greeter) {
+    public GreetingRestController(Greeter greeter) {
         this.greeter = greeter;
     }
 
