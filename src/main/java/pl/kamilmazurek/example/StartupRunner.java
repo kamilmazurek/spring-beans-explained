@@ -1,22 +1,24 @@
 package pl.kamilmazurek.example;
 
+import lombok.AllArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
-import pl.kamilmazurek.example.time.TimeFormatter;
+import pl.kamilmazurek.example.time.TimeLogger;
+import pl.kamilmazurek.example.user.UserService;
 
 @Component
+@AllArgsConstructor
 public class StartupRunner implements ApplicationRunner {
 
-    private final TimeFormatter timeFormatter;
+    private final TimeLogger timeLogger;
 
-    public StartupRunner(TimeFormatter timeFormatter) {
-        this.timeFormatter = timeFormatter;
-    }
+    private final UserService userService;
 
     @Override
     public void run(ApplicationArguments args) {
-        timeFormatter.printCurrentTime();
+        timeLogger.logCurrentTime();
+        userService.logExistingUsers();
     }
 
 }
