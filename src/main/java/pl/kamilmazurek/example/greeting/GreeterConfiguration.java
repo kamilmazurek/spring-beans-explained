@@ -1,4 +1,4 @@
-package pl.kamilmazurek.example.greeter;
+package pl.kamilmazurek.example.greeting;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,4 +1,4 @@
-package pl.kamilmazurek.example.greeter;
+package pl.kamilmazurek.example.greeting;
 
 public class Greeter {
 
