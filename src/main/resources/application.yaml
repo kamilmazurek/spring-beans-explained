@@ -8,3 +8,4 @@ spring:
       data-locations:
         - classpath*:users.sql
         - classpath*:orders.sql
+        - classpath*:items.sql
