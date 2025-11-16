@@ -13,7 +13,7 @@ public class UserService {
     }
 
     public void logExistingUsers() {
-        var users = userRepository.findAll().stream().map(UserEntity::getName).toList();
+        var users = userRepository.findAll().stream().map(UserEntity::getLogin).toList();
         log.info("Existing users: " + String.join(", ", users));
     }
 
