@@ -19,6 +19,7 @@ I hope this will help you understand and apply Spring Beans effectively 🙂
 ## Table of Contents
 * [What Is a Spring Bean?](#what-is-a-spring-bean)
 * [Why Use Spring Beans?](#why-use-spring-beans)
+* [Understanding the Spring IoC Container](#understanding-the-spring-ioc-container)
 * [Disclaimer](#disclaimer)
 
 ## What Is a Spring Bean?
@@ -182,6 +183,23 @@ http://localhost:8080/api/greetings/hello
 
 You should see the **Hello!** message displayed 🙂
 
+## Understanding the Spring IoC Container
+
+The Spring IoC Container is a core component of the Spring Framework that creates, manages, and wires beans.
+Instead of manually instantiating and linking objects, the container handles it automatically.
+
+It follows the Inversion of Control (IoC) principle, where the framework, rather than the application, is responsible for object creation and dependency injection.
+This approach keeps code focused on business logic and makes it more modular, testable, and maintainable.
+
+### Why the Spring IoC Container Is Useful
+* **Automatic Object Instantiation:** Creates and configures beans based on annotations, XML, or Java classes.
+* **Dependency Injection (DI):** Injects required dependencies into beans so classes don’t have to construct or locate them manually.
+* **Lifecycle Handling:** Manages bean initialization and, where applicable, destruction.
+* **Scope Flexibility:** Supports singleton, prototype, request, or session scopes depending on application needs.
+
+I think of the IoC container as a combination of a “bean factory” and a “dependency manager.”
+Developers define which beans exist and how they depend on each other, and the container takes care of their creation, management, and wiring automatically.
+
 ## Disclaimer
 
 THIS SOFTWARE AND ANY ACCOMPANYING DOCUMENTATION (INCLUDING, BUT NOT LIMITED TO, THE README.MD FILE) ARE PROVIDED
@@ -193,5 +211,5 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMA
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE,
 THE DOCUMENTATION, OR THE USE OR OTHER DEALINGS IN THE SOFTWARE OR DOCUMENTATION.
 
-Spring Boot is a trademark of Broadcom Inc. and/or its subsidiaries.
+Spring is a trademark of Broadcom Inc. and/or its subsidiaries. Spring Boot is a trademark of Broadcom Inc. and/or its subsidiaries.
 Oracle, Java, MySQL, and NetSuite are registered trademarks of Oracle and/or its affiliates. Other names may be trademarks of their respective owners.
