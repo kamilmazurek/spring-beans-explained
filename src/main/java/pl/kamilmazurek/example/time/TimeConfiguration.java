@@ -12,7 +12,7 @@ public class TimeConfiguration {
     }
 
     @Bean
-    public TimeLogger timeFormatter(TimeProvider timeProvider) {
+    public TimeLogger timeLogger(TimeProvider timeProvider) {
         return new TimeLogger(timeProvider);
     }
 
