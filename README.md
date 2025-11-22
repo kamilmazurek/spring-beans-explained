@@ -20,6 +20,7 @@ I hope this will help you understand and apply Spring Beans effectively 🙂
 * [What Is a Spring Bean?](#what-is-a-spring-bean)
 * [Why Use Spring Beans?](#why-use-spring-beans)
 * [Understanding the Spring IoC Container](#understanding-the-spring-ioc-container)
+* [Dependency Injection and Spring Beans](#dependency-injection-and-spring-beans)
 * [Disclaimer](#disclaimer)
 
 ## What Is a Spring Bean?
@@ -70,7 +71,7 @@ mvnw spring-boot:run
 ```
 You should then see a log entry similar to the following:
 ```
-2025-11-22T19:42:05.973+01:00  INFO 4204 --- [           main] pl.kamilmazurek.example.mybean.MyBean    : MyBean instance created
+2025-11-22 23:58:27.724 INFO  pl.kamilmazurek.example.mybean.MyBean: MyBean instance created
 ```
 
 This approach enables loose coupling, easier testing, and more maintainable applications.
@@ -199,6 +200,104 @@ This approach keeps code focused on business logic and makes it more modular, te
 
 I think of the IoC container as a combination of a “bean factory” and a “dependency manager.”
 Developers define which beans exist and how they depend on each other, and the container takes care of their creation, management, and wiring automatically.
+
+## Dependency Injection and Spring Beans
+
+One of the main benefits of the Spring IoC Container is dependency injection (DI), which allows an object’s dependencies to be provided from the outside, rather than having the object create them itself.
+
+Dependencies between beans can be configured in multiple ways, including:
+* **Constructor Injection:** Providing dependencies via the bean’s constructor.
+* **Injection with `@Autowired`:** Spring injects the required bean via a setter, field, or constructor.
+* **Java Configuration:** Defining beans in a `@Configuration` class so Spring can manage their dependencies.
+* **XML Configuration:** Declaring beans and their dependencies in an XML file using `<bean>` elements with `property` or `constructor-arg`.
+
+To better understand the concept, let’s see how it can be done using a `@Configuration` class.
+
+Below is an example that you can find in the `pl.kamilmazurek.example.time` package.
+
+Suppose we have a simple `TimeProvider` class that returns the current time:
+```java
+public class TimeProvider {
+
+    public LocalDateTime now() {
+        return LocalDateTime.now();
+    }
+
+}
+```
+
+Next, we want a `TimeLogger` class that uses `TimeProvider` to log the current time:
+```java
+@Slf4j
+public class TimeLogger {
+
+    private final TimeProvider timeProvider;
+
+    public TimeLogger(TimeProvider timeProvider) {
+        this.timeProvider = timeProvider;
+    }
+
+    public void logCurrentTime() {
+        log.info("Current time: " + timeProvider.now());
+    }
+
+}
+```
+
+We can write a configuration class to tell Spring to inject the `TimeProvider` bean into the `TimeLogger` bean, like this:
+```java
+@Configuration
+public class TimeConfiguration {
+
+    @Bean
+    public TimeProvider timeProvider() {
+        return new TimeProvider();
+    }
+
+    @Bean
+    public TimeLogger timeLogger(TimeProvider timeProvider) {
+        return new TimeLogger(timeProvider);
+    }
+
+}
+```
+
+Here, the Spring IoC Container:
+* Creates a `TimeProvider` bean.
+* Creates a `TimeLogger` bean and automatically injects the `TimeProvider` into it.
+
+There is also a `Runner` class that calls the `logCurrentTime()` method, so the current time will be logged during application startup:
+```java
+@Component
+@AllArgsConstructor
+public class Runner implements ApplicationRunner {
+
+    private final TimeLogger timeLogger;
+
+    private final UserService userService;
+
+    @Override
+    public void run(ApplicationArguments args) {
+        timeLogger.logCurrentTime();
+        userService.logExistingUsers();
+    }
+
+}
+```
+
+To see it in action, start the application:
+```bash
+mvnw spring-boot:run
+```
+You should then see a log entry similar to the following:
+```
+2025-11-22 23:58:28.028 INFO  pl.kamilmazurek.example.time.TimeLogger: Current time: 2025-11-22T23:58:28.028771700
+```
+
+The classes don’t construct or pass dependencies themselves. They simply declare what they need, and the IoC container provides it.
+
+This approach reduces boilerplate, increases modularity, and simplifies testing by allowing dependencies to be replaced with mocks or stubs.
+The IoC container manages beans automatically, letting developers focus on business logic
 
 ## Disclaimer
 

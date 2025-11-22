@@ -9,7 +9,7 @@ import pl.kamilmazurek.example.user.UserService;
 
 @Component
 @AllArgsConstructor
-public class StartupRunner implements ApplicationRunner {
+public class Runner implements ApplicationRunner {
 
     private final TimeLogger timeLogger;
 

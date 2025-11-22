@@ -9,3 +9,6 @@ spring:
         - classpath*:users.sql
         - classpath*:orders.sql
         - classpath*:items.sql
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger: %msg%n"
