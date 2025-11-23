@@ -21,6 +21,7 @@ I hope this will help you understand and apply Spring Beans effectively 🙂
 * [Why Use Spring Beans?](#why-use-spring-beans)
 * [Understanding the Spring IoC Container](#understanding-the-spring-ioc-container)
 * [Dependency Injection and Spring Beans](#dependency-injection-and-spring-beans)
+* [Configuring Beans with Annotations or XML](#configuring-beans-with-annotations-or-xml)
 * [Disclaimer](#disclaimer)
 
 ## What Is a Spring Bean?
@@ -69,9 +70,9 @@ If you want to verify that it works and the bean is actually created, you can st
 ```bash
 mvnw spring-boot:run
 ```
-You should then see a log entry similar to the following:
+You should then see a log entry like this:
 ```
-2025-11-22 23:58:27.724 INFO  pl.kamilmazurek.example.mybean.MyBean: MyBean instance created
+INFO  pl.kamilmazurek.example.mybean.MyBean: MyBean instance create
 ```
 
 This approach enables loose coupling, easier testing, and more maintainable applications.
@@ -291,13 +292,218 @@ mvnw spring-boot:run
 ```
 You should then see a log entry similar to the following:
 ```
-2025-11-22 23:58:28.028 INFO  pl.kamilmazurek.example.time.TimeLogger: Current time: 2025-11-22T23:58:28.028771700
+INFO  pl.kamilmazurek.example.time.TimeLogger: Current time: 2025-11-23T22:23:59.74784280
 ```
 
 The classes don’t construct or pass dependencies themselves. They simply declare what they need, and the IoC container provides it.
 
 This approach reduces boilerplate, increases modularity, and simplifies testing by allowing dependencies to be replaced with mocks or stubs.
 The IoC container manages beans automatically, letting developers focus on business logic
+
+## Configuring Beans with Annotations or XML
+Spring provides several ways to define and configure beans, allowing developers to choose the approach that best fits their application’s complexity and design preferences.
+The three most common methods are:
+* Annotation-based configuration
+* Java-based configuration using `@Configuration` and `@Bean`
+* XML-based configuration files
+
+Although XML configuration remains supported for legacy applications,
+modern Spring Boot projects typically favor annotation-driven and Java-based configurations for better readability, maintainability, and seamless integration with auto-configuration.
+
+### Annotation-Based Configuration
+
+Annotation-based configuration is the most common and convenient way to define beans in modern Spring applications.
+Developers can mark classes with specific annotations, allowing Spring to automatically detect and register them as beans during component scanning.
+
+To achieve this, developers typically use [Spring Stereotypes](#spring-stereotype-annotations-component-service-etc), such as:
+* **@Component:** Generic stereotype for any Spring-managed component.
+* **@Service:** Specialization of `@Component` used to mark classes that hold business logic.
+* **@Repository:** Indicates a component that handles data access and enables automatic exception translation.
+* **@Controller:** Identifies a class that handles web requests in Spring MVC applications.
+* **@RestController:** Combination of `@Controller` and `@ResponseBody`, typically used for RESTful web services.
+
+Below is an example from the `pl.kamilmazurek.example.user` package that demonstrates how to define a `UserService` and inject a `UserRepository` into it using annotations and constructor-based injection.
+
+In this example, the `UserService` receives a `UserRepository` through its constructor. It then fetches all existing users and logs their usernames:
+```java
+@Slf4j
+@Service
+public class UserService {
+    private final UserRepository userRepository;
+
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    public void logExistingUsers() {
+        var users = userRepository.findAll().stream().map(UserEntity::getLogin).toList();
+        log.info("Existing users: " + String.join(", ", users));
+    }
+
+}
+```
+
+Below is the corresponding `UserRepository`, a simple Spring Data JPA interface used to access `UserEntity` records:
+```java
+@Repository
+public interface UserRepository extends JpaRepository<UserEntity, Long> {
+}
+```
+
+Below is the `UserEntity` class, a simple JPA entity representing a user record in the `users` table:
+```java
+@Entity
+@Data
+@Table(name = "users")
+public class UserEntity {
+
+    @Id
+    private Long id;
+
+    private String login;
+
+}
+```
+
+This example uses Spring Data JPA, added by the following Maven dependency:
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-jpa</artifactId>
+</dependency>
+```
+
+For simplicity, the example runs on an in-memory H2 database, with Spring Boot configured to use H2 and load initial data from `users.sql`:
+```yaml
+spring:
+  datasource:
+    url: jdbc:h2:mem:spring-beans-explained
+  jpa:
+    defer-datasource-initialization: true
+  sql:
+    init:
+      data-locations:
+        - classpath*:users.sql
+```
+
+Additionally, similar to the previous example, there is a`Runner` class that calls the `logExistingUsers()` method, so the existing users be logged during application startup:
+
+```java
+@Component
+@AllArgsConstructor
+public class Runner implements ApplicationRunner {
+
+    private final TimeLogger timeLogger;
+
+    private final UserService userService;
+
+    @Override
+    public void run(ApplicationArguments args) {
+        timeLogger.logCurrentTime();
+        userService.logExistingUsers();
+    }
+
+}
+```
+
+As a result, after running the application with `mvnw spring-boot:run`, you should see a log entry like:
+```
+INFO  pl.kamilmazurek.example.user.UserService: Existing users: test-user-a, test-user-b, test-user-c
+```
+
+**Note:** Spring Boot automatically performs component scanning for the package containing the main application class (and its subpackages).
+
+However, if you need to manually enable automatic detection of annotated classes, you can use the `@ComponentScan` annotation:
+```java
+@Configuration
+@ComponentScan(basePackages = "package.goes.here")
+public class AppConfig {
+}
+```
+
+Annotation-based configuration offers a lightweight, easy-to-start approach that fits naturally within microservice architectures.
+That said, in very large applications, extensive use of automatic scanning can make it harder to trace dependencies and manage configurations explicitly.
+
+### Java-Based Configuration with @Configuration and @Bean
+
+Java-based configuration defines beans using dedicated configuration classes annotated with `@Configuration` and methods annotated with `@Bean`.
+This approach provides a clear and type-safe way to configure beans without relying on XML or component scanning.
+
+As shown in the [Dependency Injection and Spring Beans](#dependency-injection-and-spring-beans) section, the `TimeConfiguration` class in the `pl.kamilmazurek.example.time` package demonstrates how to define beans and wire their dependencies using `@Bean` methods.
+
+```java
+@Configuration
+public class TimeConfiguration {
+
+    @Bean
+    public TimeProvider timeProvider() {
+        return new TimeProvider();
+    }
+
+    @Bean
+    public TimeLogger timeLogger(TimeProvider timeProvider) {
+        return new TimeLogger(timeProvider);
+    }
+
+}
+
+```
+
+Java-based configuration gives developers explicit control over bean creation and wiring.
+It is particularly useful when integrating third-party libraries, applying custom initialization logic, or when precise control over the bean lifecycle is needed.
+
+### XML-Based Configuration
+
+In the early versions of Spring, beans were typically defined in XML configuration files using the `<bean>` element.
+
+This approach allowed developers to explicitly declare each bean and its dependencies.
+
+The XML configuration below reflects the same setup as the previously shown `TimeConfiguration` example:
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="timeProvider" class="pl.kamilmazurek.example.time.TimeProvider"/>
+
+    <bean id="timeLogger" class="pl.kamilmazurek.example.time.TimeLogger">
+        <constructor-arg ref="timeProvider"/>
+    </bean>
+
+</beans>
+```
+
+Depending on the application setup, an XML configuration file can be loaded in several ways. For example:
+```java
+ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
+TimeLogger timeLogger = context.getBean("timeLogger", TimeLogger.class);
+timeLogger.logCurrentTime();
+```
+
+With this configuration, the Spring IoC container:
+* Creates a `TimeProvider` bean.
+* Creates a `TimeLogger` bean and injects the `TimeProvider` into it via the constructor.
+
+XML-based configuration offers clarity and flexibility, as all beans and dependencies are explicitly defined.
+However, it can become verbose and harder to maintain as the application grows, which is why most modern Spring Boot projects prefer annotation-driven or Java-based configurations.
+
+### Which Configuration Type Should Be Used?
+
+Spring provides flexibility in how beans are defined and managed, with each configuration style offering its own advantages and ideal use cases.
+
+Annotation-based configuration is the preferred approach for most modern Spring applications.
+It allows concise definitions, integrates seamlessly with Spring Boot’s auto-configuration, and promotes a clean, component-oriented structure that is easy to read and maintain.
+
+Java-based configuration complements annotation-driven approaches by providing explicit, type-safe bean definitions in code.
+It is particularly useful when integrating third-party libraries, adding custom initialization logic, or when fine-grained control over bean creation is needed.
+
+XML-based configuration provides explicit control and works well for legacy systems or when integrating with older Spring applications.
+However, it can become verbose and harder to maintain as a project grows.
+
+In modern Spring Boot development, annotation-driven and Java-based configurations are considered the standard.
+For now, XML is still supported, but is mainly used in legacy systems or specific integration scenarios.
 
 ## Disclaimer
 
