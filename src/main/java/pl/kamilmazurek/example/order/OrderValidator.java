@@ -10,15 +10,11 @@ public class OrderValidator {
             return false;
         }
 
-        if (hasNoProducts(orderEntity)) {
-            return false;
-        }
-
-        return true;
+        return hasProducts(orderEntity);
     }
 
-    private boolean hasNoProducts(OrderEntity orderEntity) {
-        return orderEntity.getProducts() == null || orderEntity.getProducts().isEmpty();
+    private boolean hasProducts(OrderEntity orderEntity) {
+        return orderEntity.getProducts() != null && !orderEntity.getProducts().isEmpty();
     }
 
 }
