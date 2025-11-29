@@ -1,14 +1,24 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Valid Orders</title>
+    <title th:text="${name}">Orders</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
-<h1>Valid Orders</h1>
-<ul>
-    <li th:each="order : ${orders}">
-        Order ID: <span th:text="${order.id}"></span>, Total: <span th:text="${order.totalAmount}"></span>
-    </li>
-</ul>
+<h1 th:text="${name}">Orders</h1>
+<table>
+    <thead>
+    <tr>
+        <th>Order ID</th>
+        <th>Total Amount</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="order : ${orders}">
+        <td th:text="${order.id}"></td>
+        <td th:text="${order.totalAmount}"></td>
+    </tr>
+    </tbody>
+</table>
 </body>
 </html>

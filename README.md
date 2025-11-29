@@ -22,6 +22,7 @@ I hope this will help you understand and apply Spring Beans effectively 🙂
 * [Understanding the Spring IoC Container](#understanding-the-spring-ioc-container)
 * [Dependency Injection and Spring Beans](#dependency-injection-and-spring-beans)
 * [Configuring Beans with Annotations or XML](#configuring-beans-with-annotations-or-xml)
+* [Spring Stereotype Annotations (@Component, @Service, @Repository, etc.)](#spring-stereotype-annotations-component-service-repository-etc)
 * [Disclaimer](#disclaimer)
 
 ## What Is a Spring Bean?
@@ -504,6 +505,195 @@ However, it can become verbose and harder to maintain as a project grows.
 
 In modern Spring Boot development, annotation-driven and Java-based configurations are considered the standard.
 For now, XML is still supported, but is mainly used in legacy systems or specific integration scenarios.
+
+## Spring Stereotype Annotations (@Component, @Service, @Repository, etc.)
+
+Spring stereotype annotations are special markers for classes. They indicate that the class is managed by the Spring container.
+These annotations allow Spring to automatically detect and register classes as beans during component scanning, reducing the need for explicit configuration.
+
+A basic building block of this mechanism is the `@Component` annotation, which serves as a generic stereotype for any Spring-managed component.
+Spring also provides specialized annotations built on top of `@Component`. These help organize classes by their responsibilities, making the application structure clearer and easier to maintain.
+
+The following example from the `pl.kamilmazurek.example.order` package demonstrates how beans of different types, defined with multiple stereotypes, work together in practice.
+
+### @Component
+Marks a class as a general-purpose Spring bean. It is the base stereotype for all other specialized annotations.
+```java
+@Component
+public class OrderValidator {
+
+    public boolean isValid(OrderEntity orderEntity) {
+        if (orderEntity == null) {
+            return false;
+        }
+
+        return hasProducts(orderEntity);
+    }
+
+    private boolean hasProducts(OrderEntity orderEntity) {
+        return orderEntity.getProducts() != null && !orderEntity.getProducts().isEmpty();
+    }
+
+}
+```
+
+### @Repository
+Marks a class as a data access or persistence layer component.
+Spring can automatically translate persistence-related exceptions thrown by these classes into its unified `DataAccessException` hierarchy.
+```java
+@Repository
+public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
+}
+```
+
+For a bigger picture, sample `OrderEntity` may look as follows:
+```java
+@Entity
+@Table(name = "orders")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class OrderEntity {
+
+    @Id
+    private Long id;
+
+    private LocalDate orderDate;
+
+    private double totalAmount;
+
+    @ElementCollection
+    @Column(name = "product")
+    @CollectionTable(name = "order_products", joinColumns = @JoinColumn(name = "order_id"))
+    private List<String> products;
+
+
+}
+```
+
+### @Service
+A specialization of `@Component` used for classes containing business logic or service-related operations.
+This helps organize large applications and makes their structure easier to understand.
+```java
+@Service
+public class OrderService {
+
+    private final OrderValidator orderValidator;
+
+    private final OrderRepository orderRepository;
+
+    public OrderService(OrderValidator orderValidator, OrderRepository orderRepository) {
+        this.orderValidator = orderValidator;
+        this.orderRepository = orderRepository;
+    }
+
+    public List<OrderEntity> getOrders() {
+        return orderRepository.findAll();
+    }
+
+    public List<OrderEntity> getValidOrders() {
+        return orderRepository.findAll().stream().filter(orderValidator::isValid).toList();
+    }
+
+}
+```
+
+### @Controller
+Marks a class as a web controller in a Spring MVC application.
+Methods inside typically handle HTTP requests and return views.
+```java
+@Controller
+@RequestMapping("/orders")
+public class OrderController {
+
+    private final OrderService orderService;
+
+    public OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
+
+    @GetMapping("")
+    public ModelAndView showOrders() {
+        var modelAndView = new ModelAndView("orders");
+
+        modelAndView.addObject("name", "Orders");
+        modelAndView.addObject("orders", orderService.getOrders());
+
+        return modelAndView;
+    }
+
+    @GetMapping("/valid")
+    public ModelAndView showValidOrders() {
+        var modelAndView = new ModelAndView("orders");
+
+        modelAndView.addObject("name", "Valid Orders");
+        modelAndView.addObject("orders", orderService.getValidOrders());
+
+        return modelAndView;
+    }
+
+}
+```
+
+The controller provides data to the template, which Spring renders on the server before sending the final HTML to the browser.
+
+A template engine can be used to render the view, for example Thymeleaf.
+In a Spring Boot–based application, this can be configured by adding the following dependency to `pom.xml`:
+```xml
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+```
+
+In this example, the template is placed in `src/main/resources/templates/orders.html` and uses a CSS stylesheet from `src/main/resources/static/css/styles.css`.
+The same template is used for both all orders and valid orders, with the displayed data changing based on the controller method that provides it.
+
+When the application is running, the results can be viewed at the following addresses:
+* All orders: `http://localhost:8080/orders`
+* Valid orders: `http://localhost:8080/orders/valid`
+
+The template will display either all orders or only valid orders, depending on the endpoint used.
+The controller provides the data by retrieving it from the service, which in turn obtains it from the repository that reads it from the database.
+
+### @RestController
+A convenient specialization of `@Controller` that combines `@Controller` and `@ResponseBody`.
+It is commonly used in RESTful web services to return data directly as `JSON` or `XML`.
+```java
+@RestController
+@RequestMapping("/api/orders")
+public class OrderRestController {
+
+    private final OrderService orderService;
+
+    public OrderRestController(OrderService orderService) {
+        this.orderService = orderService;
+    }
+
+    @GetMapping
+    public List<OrderEntity> getAllOrders() {
+        return orderService.getOrders();
+    }
+
+    @GetMapping("/valid")
+    public List<OrderEntity> getValidOrders() {
+        return orderService.getValidOrders();
+    }
+
+}
+```
+
+Once the application is running, you can access the REST endpoints in your browser or any HTTP client:
+* All orders: `http://localhost:8080/api/orders`
+* Valid orders: `http://localhost:8080/api/orders/valid`
+
+The RestController retrieves the data from the service, which obtains it from the repository that reads it from the database.
+The server then returns the result in `JSON` format.
+
+---
+
+These stereotype annotations help organize an application’s structure by clearly defining the responsibilities of different components such as controllers, services, and repositories.
+They make the application easier to understand and maintain by providing meaningful context about each component’s role within the overall architecture.
 
 ## Disclaimer
 

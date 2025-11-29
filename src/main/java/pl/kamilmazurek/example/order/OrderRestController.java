@@ -11,16 +11,14 @@ import java.util.List;
 public class OrderRestController {
 
     private final OrderService orderService;
-    private final OrderRepository orderRepository;
 
-    public OrderRestController(OrderService orderService, OrderRepository orderRepository) {
+    public OrderRestController(OrderService orderService) {
         this.orderService = orderService;
-        this.orderRepository = orderRepository;
     }
 
     @GetMapping
     public List<OrderEntity> getAllOrders() {
-        return orderRepository.findAll();
+        return orderService.getOrders();
     }
 
     @GetMapping("/valid")
