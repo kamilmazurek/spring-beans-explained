@@ -25,6 +25,7 @@ I hope this will help you understand and apply Spring Beans effectively 🙂
 * [Spring Stereotype Annotations (@Component, @Service, @Repository, etc.)](#spring-stereotype-annotations-component-service-repository-etc)
 * [Spring Bean Scopes (Singleton, Prototype, etc.)](#spring-bean-scopes-singleton-prototype-etc)
 * [Spring Bean Lifecycle](#spring-bean-lifecycle)
+* [Bean Creation and Initialization](#bean-creation-and-initialization)
 * [Disclaimer](#disclaimer)
 
 ## What Is a Spring Bean?
@@ -70,10 +71,13 @@ Here, `MyBean` is a Spring Bean. When the application starts, Spring detects the
 Once registered, the bean becomes available for dependency injection throughout the application, so it can be injected into other beans or components, e.g. by using `@Autowired` or constructor injection.
 
 If you want to verify that it works and the bean is actually created, you can start the application with:
+
 ```bash
 mvnw spring-boot:run
 ```
+
 You should then see a log entry like this:
+
 ```
 INFO  pl.kamilmazurek.example.mybean.MyBean: MyBean instance create
 ```
@@ -106,6 +110,7 @@ Let’s say we want our application to display a greeting message.
 
 ### Step 1: Using `System.out`
 In a plain Java application, you can print a greeting like this:
+
 ```java
 System.out.println("Hello from the application!");
 ```
@@ -113,6 +118,7 @@ System.out.println("Hello from the application!");
 ### Step 2: Using a POJO for Flexibility
 In real-world applications, it’s common to keep logic flexible and reusable.
 Let’s move the greeting logic into a `Greeter` class:
+
 ```java
 public class Greeter {
 
@@ -123,6 +129,7 @@ public class Greeter {
 }
 ```
 In a plain Java application, you can use this class like this:
+
 ```java
 var greeter = new Greeter();
 System.out.println(greeter.createHelloMessage());
@@ -130,6 +137,7 @@ System.out.println(greeter.createHelloMessage());
 
 ### Step 3: Using Spring Bean
 With Spring, the framework can manage the `Greeter` instance for you:
+
 ```java
 @Configuration
 public class GreeterConfiguration {
@@ -147,6 +155,7 @@ Now that `Greeter` is Spring-managed, we can use it in other components. Next, w
 
 ### Step 4: Exposing the Greeting via REST API
 With Spring Boot, we can now expose the greeting through a REST endpoint:
+
 ```java
 @RestController
 public class GreeterRestController {
@@ -164,7 +173,9 @@ public class GreeterRestController {
 
 }
 ```
+
 To make this work, you can use Spring Boot Web Starter, for example, by including the dependency in your `pom.xml`:
+
 ```xml
 <dependency>
     <groupId>org.springframework.boot</groupId>
@@ -178,10 +189,13 @@ This lets developers focus on writing business logic and reusable components whi
 This approach makes the code easier to maintain, test, and extend, and allows you to use many Spring mechanisms along with their related libraries and solutions, for example, to expose functionality like the greeting message through a REST API without much effort.
 
 To see this in action, run the application with:
+
 ```bash
 mvnw spring-boot:run
 ```
+
 Then open the following URL in your browser:
+
 ```bash
 http://localhost:8080/api/greetings/hello
 ```
@@ -220,6 +234,7 @@ To better understand the concept, let’s see how it can be done using a `@Confi
 Below is an example that you can find in the `pl.kamilmazurek.example.time` package.
 
 Suppose we have a simple `TimeProvider` class that returns the current time:
+
 ```java
 public class TimeProvider {
 
@@ -231,6 +246,7 @@ public class TimeProvider {
 ```
 
 Next, we want a `TimeLogger` class that uses `TimeProvider` to log the current time:
+
 ```java
 @Slf4j
 public class TimeLogger {
@@ -249,6 +265,7 @@ public class TimeLogger {
 ```
 
 We can write a configuration class to tell Spring to inject the `TimeProvider` bean into the `TimeLogger` bean, like this:
+
 ```java
 @Configuration
 public class TimeConfiguration {
@@ -271,6 +288,7 @@ Here, the Spring IoC Container:
 * Creates a `TimeLogger` bean and automatically injects the `TimeProvider` into it.
 
 There is also a `Runner` class that calls the `logCurrentTime()` method, so the current time will be logged during application startup:
+
 ```java
 @Component
 @AllArgsConstructor
@@ -290,10 +308,13 @@ public class Runner implements ApplicationRunner {
 ```
 
 To see it in action, start the application:
+
 ```bash
 mvnw spring-boot:run
 ```
+
 You should then see a log entry similar to the following:
+
 ```
 INFO  pl.kamilmazurek.example.time.TimeLogger: Current time: 2025-11-23T22:23:59.74784280
 ```
@@ -328,6 +349,7 @@ To achieve this, developers typically use [Spring Stereotypes](#spring-stereotyp
 Below is an example from the `pl.kamilmazurek.example.user` package that demonstrates how to define a `UserService` and inject a `UserRepository` into it using annotations and constructor-based injection.
 
 In this example, the `UserService` receives a `UserRepository` through its constructor. It then fetches all existing users and logs their usernames:
+
 ```java
 @Slf4j
 @Service
@@ -347,6 +369,7 @@ public class UserService {
 ```
 
 Below is the corresponding `UserRepository`, a simple Spring Data JPA interface used to access `UserEntity` records:
+
 ```java
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
@@ -354,6 +377,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 ```
 
 Below is the `UserEntity` class, a simple JPA entity representing a user record in the `users` table:
+
 ```java
 @Entity
 @Data
@@ -369,6 +393,7 @@ public class UserEntity {
 ```
 
 This example uses Spring Data JPA, added by the following Maven dependency:
+
 ```xml
 <dependency>
     <groupId>org.springframework.boot</groupId>
@@ -377,6 +402,7 @@ This example uses Spring Data JPA, added by the following Maven dependency:
 ```
 
 For simplicity, the example runs on an in-memory H2 database, with Spring Boot configured to use H2 and load initial data from `users.sql`:
+
 ```yaml
 spring:
   datasource:
@@ -410,6 +436,7 @@ public class Runner implements ApplicationRunner {
 ```
 
 As a result, after running the application with `mvnw spring-boot:run`, you should see a log entry like:
+
 ```
 INFO  pl.kamilmazurek.example.user.UserService: Existing users: test-user-a, test-user-b, test-user-c
 ```
@@ -417,6 +444,7 @@ INFO  pl.kamilmazurek.example.user.UserService: Existing users: test-user-a, tes
 **Note:** Spring Boot automatically performs component scanning for the package containing the main application class (and its subpackages).
 
 However, if you need to manually enable automatic detection of annotated classes, you can use the `@ComponentScan` annotation:
+
 ```java
 @Configuration
 @ComponentScan(basePackages = "package.goes.here")
@@ -462,6 +490,7 @@ In the early versions of Spring, beans were typically defined in XML configurati
 This approach allowed developers to explicitly declare each bean and its dependencies.
 
 The XML configuration below reflects the same setup as the previously shown `TimeConfiguration` example:
+
 ```xml
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -479,6 +508,7 @@ The XML configuration below reflects the same setup as the previously shown `Tim
 ```
 
 Depending on the application setup, an XML configuration file can be loaded in several ways. For example:
+
 ```java
 ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
 TimeLogger timeLogger = context.getBean("timeLogger", TimeLogger.class);
@@ -520,6 +550,7 @@ The following example from the `pl.kamilmazurek.example.order` package demonstra
 
 ### @Component
 Marks a class as a general-purpose Spring bean. It is the base stereotype for all other specialized annotations.
+
 ```java
 @Component
 public class OrderValidator {
@@ -542,6 +573,7 @@ public class OrderValidator {
 ### @Repository
 Marks a class as a data access or persistence layer component.
 Spring can automatically translate persistence-related exceptions thrown by these classes into its unified `DataAccessException` hierarchy.
+
 ```java
 @Repository
 public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
@@ -549,6 +581,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
 ```
 
 For a bigger picture, sample `OrderEntity` may look as follows:
+
 ```java
 @Entity
 @Table(name = "orders")
@@ -576,6 +609,7 @@ public class OrderEntity {
 ### @Service
 A specialization of `@Component` used for classes containing business logic or service-related operations.
 This helps organize large applications and makes their structure easier to understand.
+
 ```java
 @Service
 public class OrderService {
@@ -603,6 +637,7 @@ public class OrderService {
 ### @Controller
 Marks a class as a web controller in a Spring MVC application.
 Methods inside typically handle HTTP requests and return views.
+
 ```java
 @Controller
 @RequestMapping("/orders")
@@ -641,6 +676,7 @@ The controller provides data to the template, which Spring renders on the server
 
 A template engine can be used to render the view, for example Thymeleaf.
 In a Spring Boot–based application, this can be configured by adding the following dependency to `pom.xml`:
+
 ```xml
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -661,6 +697,7 @@ The controller provides the data by retrieving it from the service, which in tur
 ### @RestController
 A convenient specialization of `@Controller` that combines `@Controller` and `@ResponseBody`.
 It is commonly used in RESTful web services to return data directly as `JSON` or `XML`.
+
 ```java
 @RestController
 @RequestMapping("/api/orders")
@@ -716,6 +753,7 @@ Singleton is the default scope in Spring. Only one shared instance of the bean i
 All requests for this bean will return the same instance.
 
 For example, consider a `SingletonService` bean:
+
 ```java
 @Service
 public class SingletonService {
@@ -728,6 +766,7 @@ public class SingletonService {
 ```
 
 `SingletonService` can be injected into multiple other beans, such as `OtherServiceA` and `OtherServiceB`:
+
 ```java
 @Service
 public class OtherServiceA {
@@ -740,6 +779,7 @@ public class OtherServiceA {
 
 }
 ```
+
 ```java
 @Service
 public class OtherServiceB {
@@ -765,6 +805,7 @@ Notes about singleton beans:
 Prototype beans are created anew each time they are requested from the Spring container.
 Unlike singleton beans, every injection or retrieval results in a fresh instance.
 For example, consider a `PrototypeService` bean:
+
 ```java
 @Service
 @Scope("prototype")
@@ -778,6 +819,7 @@ public class PrototypeService {
 ```
 
 `PrototypeService` can be injected into multiple other beans, such as `OtherServiceA` and `OtherServiceB`:
+
 ```java
 @Service
 public class OtherServiceA {
@@ -789,6 +831,7 @@ public class OtherServiceA {
     }
 }
 ```
+
 ```java
 @Service
 public class OtherServiceB {
@@ -815,9 +858,10 @@ The request scope is specific to web applications. A new instance of the bean is
 This ensures that each request gets its own independent instance, making it suitable for request-specific data.
 
 For example, consider a `RequestService` bean:
+
 ```java
 @Service
-@Scope("request")
+@RequestScope
 public class RequestService {
 
     public void processRequest() {
@@ -863,9 +907,10 @@ A new instance of the bean is created once per HTTP session and is reused for al
 This is useful for user-specific state, such as shopping carts, user preferences, or temporary session data.
 
 For example, consider a `SessionService` bean:
+
 ```java
 @Service
-@Scope("session")
+@SessionScope
 public class SessionService {
 
     private int counter = 0;
@@ -914,9 +959,10 @@ A single instance is created per ServletContext and shared across all requests a
 This makes it useful for global resources such as caches, configuration settings, or shared services.
 
 For example, consider an `ApplicationService` bean:
+
 ```java
 @Service
-@Scope("application")
+@ApplicationScope
 public class ApplicationService {
 
     private int globalCounter = 0;
@@ -930,6 +976,7 @@ public class ApplicationService {
 ```
 
 If `ApplicationService` is injected into multiple components, all requests and sessions share the same instance:
+
 ```java
 @RestController
 @RequestMapping("/api")
@@ -963,9 +1010,10 @@ A new bean instance is created for each WebSocket session and is shared across a
 This is useful for maintaining session-specific state in real-time applications, such as chat sessions, live notifications, or user-specific streaming data.
 
 For example, consider a `WebSocketService` bean:
+
 ```java
 @Service
-@Scope("websocket")
+@WebSocketScope
 public class WebSocketService {
 
     private final List<String> messages = new ArrayList<>();
@@ -982,7 +1030,8 @@ public class WebSocketService {
 ```
 
 If `WebSocketService` is injected into multiple WebSocket handlers for the same session, they share the same instance.
-Each new WebSocket session gets a separate instance, isolating state between users.
+Each new WebSocket session gets a separate instance, isolating state between sessions.
+
 ```java
 @Component
 public class ChatWebSocketHandler extends TextWebSocketHandler {
@@ -1037,12 +1086,12 @@ Every Spring bean managed by the IoC container follows a lifecycle that defines 
 When the Spring application context starts, it scans, instantiates, and wires all defined beans.
 Each bean then passes through several stages before it’s ready for use, and the reverse happens when the context shuts down.
 
-The Spring bean lifecycle for singleton beans includes the following phases:
+The Spring bean lifecycle for singleton beans includes the following steps:
 1. **Instantiation** : The container creates a new instance of the bean, typically by calling its constructor or a factory method.
-2. **Dependency Injection** : Spring injects the bean’s dependencies, setting properties or constructor arguments declared in the configuration.
+2. **Dependency Injection** : The container injects the bean’s dependencies, setting properties or constructor arguments declared in the configuration.
 3. **Aware Interfaces (optional)** : If the bean implements interfaces such as `BeanNameAware`, `BeanFactoryAware`, or `ApplicationContextAware`, the container provides relevant context information.
 4. **BeanPostProcessor (Before Initialization, optional)** : Any registered `BeanPostProcessors` are applied before the bean’s initialization callbacks.
-5. **Initialization** : The bean executes custom initialization logic. This can include methods annotated with `@PostConstruct`, the `afterPropertiesSet()` method from `InitializingBean`, or a custom `init-method` defined in configuration.
+5. **Initialization** : The Spring container calls configured initialization logic for the bean. This can include methods annotated with `@PostConstruct`, the `afterPropertiesSet()` method from `InitializingBean`, or a custom `init-method` defined in configuration.
 6. **BeanPostProcessor (After Initialization, optional)** : Any registered `BeanPostProcessors` are applied after the bean’s initialization callbacks.
 7. **Ready for Use** : The bean is fully initialized and available for injection or retrieval from the container.
 8. **Destruction** : When the application context is closed, Spring invokes destruction callbacks. This can include methods annotated with `@PreDestroy`, the `destroy()` method from `DisposableBean`, or a custom `destroy-method` defined in configuration. Prototype beans are not automatically destroyed by the container.
@@ -1052,6 +1101,7 @@ The Spring bean lifecycle for singleton beans includes the following phases:
 ### Conceptual Flow
 Before diving into the implementation details, it helps to see the entire lifecycle at a glance.
 The simplified flow below provides a high-level view of how a Spring bean transitions through its key lifecycle phases (for singleton beans):
+
 ```
 Instantiation → Dependency Injection → Aware Interfaces → BeanPostProcessor (Before Initialization) → Initialization → BeanPostProcessor (After Initialization) → Ready for Use → Destruction
 ```
@@ -1061,6 +1111,102 @@ During these phases, Spring allows developers to hook into the bean lifecycle us
 These mechanisms are explained in the next sections:
 * [Bean Creation and Initialization](#bean-creation-and-initialization)
 * [Bean Destruction and Cleanup](#bean-destruction-and-cleanup).
+
+## Bean Creation and Initialization
+
+After a Spring bean is instantiated and its dependencies are injected, the Spring container calls any configured initialization logic, allowing the bean to be fully ready for use within the application.
+
+Spring provides several mechanisms to handle initialization, giving developers flexibility in applying custom logic.
+
+### Initialization Using Annotations
+Using the `@PostConstruct` annotation is a common choice for initialization in many modern Spring applications.
+
+This annotation marks a method to run after the bean is created and dependencies are injected:
+
+```java
+@Component
+public class SomePostConstructAnnotatedBean {
+
+  @PostConstruct
+  public void init() {
+    System.out.println("SomePostConstructAnnotatedBean is ready to use");
+  }
+
+}
+```
+
+I often choose this approach because it keeps the bean decoupled from Spring-specific interfaces, which makes the code cleaner and easier to maintain.
+
+### Initialization Using Interfaces
+Spring also offers the `InitializingBean` interface, which allows a bean to execute custom logic after its properties are set by the container.
+
+To use it, implement the `afterPropertiesSet()` method:
+
+```java
+@Component
+public class SomeInitializingBean implements InitializingBean {
+
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    System.out.println("SomeInitializingBean has been initialized");
+  }
+
+}
+```
+
+The Spring container calls `afterPropertiesSet()` after dependencies have been injected and after any before-initialization BeanPostProcessor callbacks.
+
+This approach is useful when you want initialization logic that directly integrates with the Spring framework.
+
+### Initialization via @Bean Methods
+
+For beans defined in Java configuration classes, you can specify an `initMethod` that Spring will call after the bean has completed `afterPropertiesSet()`:
+
+```java
+@Configuration
+public class AppConfig {
+
+  @Bean(initMethod = "customInit")
+  public MyCustomInitBean myCustomInitBean() {
+    return new MyCustomInitBean();
+  }
+
+}
+```
+
+And in the `MyCustomInitBean` class:
+
+```java
+public class MyCustomInitBean {
+
+  public void customInit() {
+    System.out.println("Custom initialization logic executed");
+  }
+
+}
+```
+
+I find this especially useful when integrating third-party classes that cannot be annotated with `@PostConstruct`.
+You can either create your own initialization method or tell Spring to call an existing method after the bean is created.
+This approach works well for classes you cannot or prefer not to modify.
+
+Please note that the same can also be done using XML configuration, which can be especially useful for legacy systems, for example:
+
+```xml
+<bean id="myCustomInitBean" class="pl.kamilmazurek.example.MyCustomInitBean" init-method="customInit"/>
+```
+
+### Choosing the Right Way to Initialize a Bean
+
+After a Spring bean is instantiated and its dependencies are injected, the Spring container calls any configured initialization logic in a defined order, allowing the bean to become fully ready for use.
+
+You might want to run custom initialization logic in different situations:
+* **Annotating a method with `@PostConstruct`:** I like this approach because it keeps the bean decoupled from Spring-specific interfaces, making the code cleaner and easier to maintain.
+* **Implementing `InitializingBean`:** This can be a good choice when you want your initialization logic to be tightly integrated with Spring and don’t mind depending on a Spring-specific interface.
+* **Specifying `initMethod`:** This can be useful when working with third-party classes or beans you don’t want to modify. You can either create your own initialization method or tell Spring to call an existing method after the bean is created.
+
+Choosing the right approach depends on your project style and whether you prefer annotations, interfaces, or configuration-based control.
+For me, `@PostConstruct` provides a simple and maintainable way to handle initialization in most modern Spring Boot applications.
 
 ## Disclaimer
 
