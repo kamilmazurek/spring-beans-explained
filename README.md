@@ -23,6 +23,7 @@ I hope this will help you understand and apply Spring Beans effectively 🙂
 * [Dependency Injection and Spring Beans](#dependency-injection-and-spring-beans)
 * [Configuring Beans with Annotations or XML](#configuring-beans-with-annotations-or-xml)
 * [Spring Stereotype Annotations (@Component, @Service, @Repository, etc.)](#spring-stereotype-annotations-component-service-repository-etc)
+* [Spring Bean Scopes (Singleton, Prototype, etc.)](#spring-bean-scopes-singleton-prototype-etc)
 * [Disclaimer](#disclaimer)
 
 ## What Is a Spring Bean?
@@ -694,6 +695,339 @@ The server then returns the result in `JSON` format.
 
 These stereotype annotations help organize an application’s structure by clearly defining the responsibilities of different components such as controllers, services, and repositories.
 They make the application easier to understand and maintain by providing meaningful context about each component’s role within the overall architecture.
+
+## Spring Bean Scopes (Singleton, Prototype, etc.)
+
+In Spring, bean scope determines how many instances of a bean are created and how long they live within the application context.
+Understanding scopes is essential for managing state, memory usage, and lifecycle behavior of your beans.
+
+Spring provides several built-in bean scopes, giving developers fine-grained control over how and when bean instances are created:
+* **Singleton:** The default scope in Spring, with only one shared instance per container. Useful for stateless services and shared resources.
+* **Prototype:** A new instance is created every time the bean is requested. Useful for stateful or temporary objects.
+* **Request:** A new instance is created for each HTTP request. Useful for request-specific data.
+* **Session:** One instance per HTTP session, shared across multiple requests from the same user. Useful for user-specific state.
+* **Application:** One instance per web application context, shared across all requests and sessions. Useful for global resources or caches.
+* **WebSocket:** One instance per WebSocket session. Useful for maintaining session-specific state in real-time applications.
+
+### Singleton Scope
+
+Singleton is the default scope in Spring. Only one shared instance of the bean is created per Spring IoC container.
+All requests for this bean will return the same instance.
+
+For example, consider a `SingletonService` bean:
+```java
+@Service
+public class SingletonService {
+
+    public void doSomething(){
+        // place for some logic
+    }
+
+}
+```
+
+`SingletonService` can be injected into multiple other beans, such as `OtherServiceA` and `OtherServiceB`:
+```java
+@Service
+public class OtherServiceA {
+
+    private final SingletonService singletonService;
+
+    public OtherServiceA(SingletonService singletonService) {
+        this.singletonService = singletonService;
+    }
+
+}
+```
+```java
+@Service
+public class OtherServiceB {
+
+    private final SingletonService singletonService;
+
+    public OtherServiceB(SingletonService singletonService) {
+        this.singletonService = singletonService;
+    }
+
+}
+```
+
+In this case both `OtherServiceA` and `OtherServiceB` will share the same instance of `SingletonService`.
+
+Notes about singleton beans:
+* Useful for stateless beans and services.
+* Created eagerly at container startup by default.
+* Shared across the application, which can save memory and simplify dependency management.
+
+### Prototype Scope
+
+Prototype beans are created anew each time they are requested from the Spring container.
+Unlike singleton beans, every injection or retrieval results in a fresh instance.
+For example, consider a `PrototypeService` bean:
+```java
+@Service
+@Scope("prototype")
+public class PrototypeService {
+
+    public void doSomething() {
+        // place for some logic
+    }
+
+}
+```
+
+`PrototypeService` can be injected into multiple other beans, such as `OtherServiceA` and `OtherServiceB`:
+```java
+@Service
+public class OtherServiceA {
+
+    private final PrototypeService prototypeService;
+
+    public OtherServiceA(PrototypeService prototypeService) {
+        this.prototypeService = prototypeService;
+    }
+}
+```
+```java
+@Service
+public class OtherServiceB {
+
+    private final PrototypeService prototypeService;
+
+    public OtherServiceB(PrototypeService prototypeService) {
+        this.prototypeService = prototypeService;
+    }
+
+}
+```
+
+In this case, `OtherServiceA` and `OtherServiceB` will each receive a separate instance of `PrototypeService`.
+
+Notes about prototype beans:
+* Useful for stateful or temporary objects.
+* Created on demand, not eagerly at container startup.
+* Each consumer gets a new instance.
+
+### Request Scope
+
+The request scope is specific to web applications. A new instance of the bean is created for each HTTP request.
+This ensures that each request gets its own independent instance, making it suitable for request-specific data.
+
+For example, consider a `RequestService` bean:
+```java
+@Service
+@Scope("request")
+public class RequestService {
+
+    public void processRequest() {
+        // logic specific to a single HTTP request
+    }
+
+}
+```
+
+If `RequestService` is injected into multiple components handling the same request, they share the same instance for that request.
+However, a new HTTP request will receive a new instance.
+
+```java
+@RestController
+@RequestMapping("/api")
+public class RequestController {
+
+    private final RequestService requestService;
+
+    public RequestController(RequestService requestService) {
+        this.requestService = requestService;
+    }
+
+    @GetMapping("/process")
+    public String handle() {
+        requestService.processRequest();
+        return "Request processed";
+    }
+
+}
+```
+
+Notes about request-scoped beans:
+* Created once per HTTP request.
+* Useful for beans that hold request-specific state.
+* Shared only within the same request.
+* Requires a web-aware Spring context (e.g., Spring MVC or Spring WebFlux).
+
+### Session Scope
+
+The session scope is used in web applications where a bean needs to be shared across multiple HTTP requests within the same user session.
+A new instance of the bean is created once per HTTP session and is reused for all requests from that session.
+This is useful for user-specific state, such as shopping carts, user preferences, or temporary session data.
+
+For example, consider a `SessionService` bean:
+```java
+@Service
+@Scope("session")
+public class SessionService {
+
+    private int counter = 0;
+
+    public int incrementCounter() {
+        counter++;
+        return counter;
+    }
+
+}
+```
+
+When SessionService is injected into different components handling requests from the same user session, they share the same instance.
+Another user with a different session will get a separate instance.
+
+```java
+@RestController
+@RequestMapping("/api")
+public class SessionController {
+
+    private final SessionService sessionService;
+
+    public SessionController(SessionService sessionService) {
+        this.sessionService = sessionService;
+    }
+
+    @GetMapping("/count")
+    public String count() {
+        int value = sessionService.incrementCounter();
+        return "Counter for this session: " + value;
+    }
+
+}
+```
+
+Notes about session-scoped beans:
+* Created once per HTTP session.
+* Shared across multiple requests in the same session.
+* Suitable for user-specific data that persists during the session.
+* Requires a web-aware Spring context.
+
+### Application Scope
+
+Application scope is useful for beans that need to be shared across a web application.
+A single instance is created per ServletContext and shared across all requests and sessions within that ServletContext.
+This makes it useful for global resources such as caches, configuration settings, or shared services.
+
+For example, consider an `ApplicationService` bean:
+```java
+@Service
+@Scope("application")
+public class ApplicationService {
+
+    private int globalCounter = 0;
+
+    public int incrementCounter() {
+        globalCounter++;
+        return globalCounter;
+    }
+
+}
+```
+
+If `ApplicationService` is injected into multiple components, all requests and sessions share the same instance:
+```java
+@RestController
+@RequestMapping("/api")
+public class ApplicationController {
+
+    private final ApplicationService applicationService;
+
+    public ApplicationController(ApplicationService applicationService) {
+        this.applicationService = applicationService;
+    }
+
+    @GetMapping("/global-count")
+    public String globalCount() {
+        int value = applicationService.incrementCounter();
+        return "Global counter: " + value;
+    }
+
+}
+```
+
+Notes about application-scoped beans:
+* Created once per web application context.
+* Shared across all requests and sessions.
+* Suitable for global resources such as caches, configuration objects, or shared services.
+* Requires a web-aware Spring context.
+
+### WebSocket Scope
+
+The WebSocket scope is used in Spring applications with WebSocket support.
+A new bean instance is created for each WebSocket session and is shared across all interactions within that session.
+This is useful for maintaining session-specific state in real-time applications, such as chat sessions, live notifications, or user-specific streaming data.
+
+For example, consider a `WebSocketService` bean:
+```java
+@Service
+@Scope("websocket")
+public class WebSocketService {
+
+    private final List<String> messages = new ArrayList<>();
+
+    public void addMessage(String message) {
+        messages.add(message);
+    }
+
+    public List<String> getMessages() {
+        return messages;
+    }
+
+}
+```
+
+If `WebSocketService` is injected into multiple WebSocket handlers for the same session, they share the same instance.
+Each new WebSocket session gets a separate instance, isolating state between users.
+```java
+@Component
+public class ChatWebSocketHandler extends TextWebSocketHandler {
+
+    private final WebSocketService webSocketService;
+
+    public ChatWebSocketHandler(WebSocketService webSocketService) {
+        this.webSocketService = webSocketService;
+    }
+
+    @Override
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) {
+        webSocketService.addMessage(message.getPayload());
+    }
+
+}
+```
+
+Notes about WebSocket-scoped beans:
+* Created once per WebSocket session.
+* Shared across all handlers within the same session.
+* Useful for session-specific state in real-time applications.
+* Requires a WebSocket-aware Spring context.
+
+### When to Use Each Scope
+* **Singleton:**
+    * Useful for stateless services, shared utilities, or beans that do not maintain per-request state.
+    * Example: A `NotificationService` that sends emails or push notifications, where a single shared instance is sufficient for the entire application.
+* **Prototype:**
+    * Useful when a new instance is needed each time the bean is requested.
+    * Example: A `ReportGenerator` bean that holds temporary data while creating a report. Each request (for example, via `ObjectProvider`) should obtain a fresh instance.
+* **Request:**
+    * Useful for web applications where a bean should exist only for a single HTTP request.
+    * Example: A `UserRequestLogger` that collects request-specific info for auditing or metrics.
+* **Session:**
+    * Useful for maintaining user-specific state across multiple HTTP requests.
+    * Example: A `ShoppingCart` bean that keeps track of items a user adds during their session.
+* **Application:**
+    * Useful for global resources shared across the entire web application.
+    * Example: A `CacheManager` or `ApplicationConfig` bean that stores configuration or cached data accessible to all users.
+* **WebSocket:**
+    * Useful for WebSocket sessions where state persists during real-time communication.
+    * Example: A `ChatSessionService` that maintains the message history for each user during a live chat session.
+
+Personally, I like to choose the bean scope based on how it will be used: singleton for shared, stateless services, and request, session, or prototype scopes only when per-instance or per-user state is needed.
+This approach helps me avoid memory issues, keeps things thread-safe, and makes the code easier to manage.
 
 ## Disclaimer
 
