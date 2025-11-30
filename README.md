@@ -24,6 +24,7 @@ I hope this will help you understand and apply Spring Beans effectively 🙂
 * [Configuring Beans with Annotations or XML](#configuring-beans-with-annotations-or-xml)
 * [Spring Stereotype Annotations (@Component, @Service, @Repository, etc.)](#spring-stereotype-annotations-component-service-repository-etc)
 * [Spring Bean Scopes (Singleton, Prototype, etc.)](#spring-bean-scopes-singleton-prototype-etc)
+* [Spring Bean Lifecycle](#spring-bean-lifecycle)
 * [Disclaimer](#disclaimer)
 
 ## What Is a Spring Bean?
@@ -1028,6 +1029,38 @@ Notes about WebSocket-scoped beans:
 
 Personally, I like to choose the bean scope based on how it will be used: singleton for shared, stateless services, and request, session, or prototype scopes only when per-instance or per-user state is needed.
 This approach helps me avoid memory issues, keeps things thread-safe, and makes the code easier to manage.
+
+## Spring Bean Lifecycle
+
+Every Spring bean managed by the IoC container follows a lifecycle that defines how it is created, initialized, and eventually destroyed, helping developers manage resources, add custom logic, and troubleshoot initialization issues effectively.
+
+When the Spring application context starts, it scans, instantiates, and wires all defined beans.
+Each bean then passes through several stages before it’s ready for use, and the reverse happens when the context shuts down.
+
+The Spring bean lifecycle for singleton beans includes the following phases:
+1. **Instantiation** : The container creates a new instance of the bean, typically by calling its constructor or a factory method.
+2. **Dependency Injection** : Spring injects the bean’s dependencies, setting properties or constructor arguments declared in the configuration.
+3. **Aware Interfaces (optional)** : If the bean implements interfaces such as `BeanNameAware`, `BeanFactoryAware`, or `ApplicationContextAware`, the container provides relevant context information.
+4. **BeanPostProcessor (Before Initialization, optional)** : Any registered `BeanPostProcessors` are applied before the bean’s initialization callbacks.
+5. **Initialization** : The bean executes custom initialization logic. This can include methods annotated with `@PostConstruct`, the `afterPropertiesSet()` method from `InitializingBean`, or a custom `init-method` defined in configuration.
+6. **BeanPostProcessor (After Initialization, optional)** : Any registered `BeanPostProcessors` are applied after the bean’s initialization callbacks.
+7. **Ready for Use** : The bean is fully initialized and available for injection or retrieval from the container.
+8. **Destruction** : When the application context is closed, Spring invokes destruction callbacks. This can include methods annotated with `@PreDestroy`, the `destroy()` method from `DisposableBean`, or a custom `destroy-method` defined in configuration. Prototype beans are not automatically destroyed by the container.
+
+**Note:** Prototype beans are **not automatically destroyed** by the container.
+
+### Conceptual Flow
+Before diving into the implementation details, it helps to see the entire lifecycle at a glance.
+The simplified flow below provides a high-level view of how a Spring bean transitions through its key lifecycle phases (for singleton beans):
+```
+Instantiation → Dependency Injection → Aware Interfaces → BeanPostProcessor (Before Initialization) → Initialization → BeanPostProcessor (After Initialization) → Ready for Use → Destruction
+```
+
+During these phases, Spring allows developers to hook into the bean lifecycle using annotations (e.g., `@PostConstruct`, `@PreDestroy`), interfaces (e.g., `InitializingBean`, `DisposableBean`), or configuration options (custom `init-method` and `destroy-method`) to execute custom logic.  
+
+These mechanisms are explained in the next sections:
+* [Bean Creation and Initialization](#bean-creation-and-initialization)
+* [Bean Destruction and Cleanup](#bean-destruction-and-cleanup).
 
 ## Disclaimer
 
