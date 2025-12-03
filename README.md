@@ -17,6 +17,7 @@ This repository provides practical examples showing how Spring Beans are created
 I hope this will help you understand and apply Spring Beans effectively 🙂
 
 ## Table of Contents
+
 * [What Is a Spring Bean?](#what-is-a-spring-bean)
 * [Why Use Spring Beans?](#why-use-spring-beans)
 * [Understanding the Spring IoC Container](#understanding-the-spring-ioc-container)
@@ -26,6 +27,7 @@ I hope this will help you understand and apply Spring Beans effectively 🙂
 * [Spring Bean Scopes (Singleton, Prototype, etc.)](#spring-bean-scopes-singleton-prototype-etc)
 * [Spring Bean Lifecycle](#spring-bean-lifecycle)
 * [Bean Creation and Initialization](#bean-creation-and-initialization)
+* [Bean Destruction and Cleanup](#bean-destruction-and-cleanup)
 * [Disclaimer](#disclaimer)
 
 ## What Is a Spring Bean?
@@ -109,6 +111,7 @@ Below is an example that you can find in the `pl.kamilmazurek.example.greeting` 
 Let’s say we want our application to display a greeting message.
 
 ### Step 1: Using `System.out`
+
 In a plain Java application, you can print a greeting like this:
 
 ```java
@@ -116,6 +119,7 @@ System.out.println("Hello from the application!");
 ```
 
 ### Step 2: Using a POJO for Flexibility
+
 In real-world applications, it’s common to keep logic flexible and reusable.
 Let’s move the greeting logic into a `Greeter` class:
 
@@ -136,6 +140,7 @@ System.out.println(greeter.createHelloMessage());
 ```
 
 ### Step 3: Using Spring Bean
+
 With Spring, the framework can manage the `Greeter` instance for you:
 
 ```java
@@ -154,6 +159,7 @@ Spring will create the `Greeter` instance, manage its lifecycle, and make it ava
 Now that `Greeter` is Spring-managed, we can use it in other components. Next, we’ll see how to expose its functionality through a REST API.
 
 ### Step 4: Exposing the Greeting via REST API
+
 With Spring Boot, we can now expose the greeting through a REST endpoint:
 
 ```java
@@ -211,6 +217,7 @@ It follows the Inversion of Control (IoC) principle, where the framework, rather
 This approach keeps code focused on business logic and makes it more modular, testable, and maintainable.
 
 ### Why the Spring IoC Container Is Useful
+
 * **Automatic Object Instantiation:** Creates and configures beans based on annotations, XML, or Java classes.
 * **Dependency Injection (DI):** Injects required dependencies into beans so classes don’t have to construct or locate them manually.
 * **Lifecycle Handling:** Manages bean initialization and, where applicable, destruction.
@@ -325,6 +332,7 @@ This approach reduces boilerplate, increases modularity, and simplifies testing 
 The IoC container manages beans automatically, letting developers focus on business logic
 
 ## Configuring Beans with Annotations or XML
+
 Spring provides several ways to define and configure beans, allowing developers to choose the approach that best fits their application’s complexity and design preferences.
 The three most common methods are:
 * Annotation-based configuration
@@ -549,6 +557,7 @@ Spring also provides specialized annotations built on top of `@Component`. These
 The following example from the `pl.kamilmazurek.example.order` package demonstrates how beans of different types, defined with multiple stereotypes, work together in practice.
 
 ### @Component
+
 Marks a class as a general-purpose Spring bean. It is the base stereotype for all other specialized annotations.
 
 ```java
@@ -571,6 +580,7 @@ public class OrderValidator {
 ```
 
 ### @Repository
+
 Marks a class as a data access or persistence layer component.
 Spring can automatically translate persistence-related exceptions thrown by these classes into its unified `DataAccessException` hierarchy.
 
@@ -607,6 +617,7 @@ public class OrderEntity {
 ```
 
 ### @Service
+
 A specialization of `@Component` used for classes containing business logic or service-related operations.
 This helps organize large applications and makes their structure easier to understand.
 
@@ -635,6 +646,7 @@ public class OrderService {
 ```
 
 ### @Controller
+
 Marks a class as a web controller in a Spring MVC application.
 Methods inside typically handle HTTP requests and return views.
 
@@ -695,6 +707,7 @@ The template will display either all orders or only valid orders, depending on t
 The controller provides the data by retrieving it from the service, which in turn obtains it from the repository that reads it from the database.
 
 ### @RestController
+
 A convenient specialization of `@Controller` that combines `@Controller` and `@ResponseBody`.
 It is commonly used in RESTful web services to return data directly as `JSON` or `XML`.
 
@@ -1057,6 +1070,8 @@ Notes about WebSocket-scoped beans:
 * Requires a WebSocket-aware Spring context.
 
 ### When to Use Each Scope
+
+Here are my thoughts:
 * **Singleton:**
     * Useful for stateless services, shared utilities, or beans that do not maintain per-request state.
     * Example: A `NotificationService` that sends emails or push notifications, where a single shared instance is sufficient for the entire application.
@@ -1073,7 +1088,7 @@ Notes about WebSocket-scoped beans:
     * Useful for global resources shared across the entire web application.
     * Example: A `CacheManager` or `ApplicationConfig` bean that stores configuration or cached data accessible to all users.
 * **WebSocket:**
-    * Useful for WebSocket sessions where state persists during real-time communication.
+    * Useful for WebSocket sessions where state persists during real-time communication for a single WebSocket connection.
     * Example: A `ChatSessionService` that maintains the message history for each user during a live chat session.
 
 Personally, I like to choose the bean scope based on how it will be used: singleton for shared, stateless services, and request, session, or prototype scopes only when per-instance or per-user state is needed.
@@ -1096,7 +1111,10 @@ The Spring bean lifecycle for singleton beans includes the following steps:
 7. **Ready for Use** : The bean is fully initialized and available for injection or retrieval from the container.
 8. **Destruction** : When the application context is closed, Spring invokes destruction callbacks. This can include methods annotated with `@PreDestroy`, the `destroy()` method from `DisposableBean`, or a custom `destroy-method` defined in configuration. Prototype beans are not automatically destroyed by the container.
 
-**Note:** Prototype beans are **not automatically destroyed** by the container.
+**Note:** This and the next sections focus on **singleton beans**, the most common type of Spring bean.  
+Bean lifecycle behavior can vary across scopes, particularly in the timing and handling of initialization and destruction callbacks.
+
+For more details regarding bean lifecycle, initialization and destruction, including non-singleton scopes, please see the [Spring Framework Documentation](https://docs.spring.io/spring-framework/).
 
 ### Conceptual Flow
 Before diving into the implementation details, it helps to see the entire lifecycle at a glance.
@@ -1114,15 +1132,16 @@ These mechanisms are explained in the next sections:
 
 ## Bean Creation and Initialization
 
-After a Spring bean is instantiated and its dependencies are injected, the Spring container calls any configured initialization logic, allowing the bean to be fully ready for use within the application.
+After a singleton bean is instantiated and its dependencies are injected, the Spring container calls any configured initialization logic, allowing the bean to be fully ready for use within the application.
 
 Spring provides several mechanisms to handle initialization, giving developers flexibility in applying custom logic.
 
 ### Initialization Using Annotations
+
 Using the `@PostConstruct` annotation is a common choice for initialization in many modern Spring applications.
+This annotation marks a method to run after the bean is created and dependencies are injected.
 
-This annotation marks a method to run after the bean is created and dependencies are injected:
-
+To use it simply annotate method as follows:
 ```java
 @Component
 public class SomePostConstructAnnotatedBean {
@@ -1138,6 +1157,7 @@ public class SomePostConstructAnnotatedBean {
 I often choose this approach because it keeps the bean decoupled from Spring-specific interfaces, which makes the code cleaner and easier to maintain.
 
 ### Initialization Using Interfaces
+
 Spring also offers the `InitializingBean` interface, which allows a bean to execute custom logic after its properties are set by the container.
 
 To use it, implement the `afterPropertiesSet()` method:
@@ -1154,13 +1174,13 @@ public class SomeInitializingBean implements InitializingBean {
 }
 ```
 
-The Spring container calls `afterPropertiesSet()` after dependencies have been injected and after any before-initialization BeanPostProcessor callbacks.
-
 This approach is useful when you want initialization logic that directly integrates with the Spring framework.
 
 ### Initialization via @Bean Methods
 
-For beans defined in Java configuration classes, you can specify an `initMethod` that Spring will call after the bean has completed `afterPropertiesSet()`:
+For beans defined in Java configuration classes, you can specify an `initMethod` that Spring will call after dependency injection is complete.
+
+To use it, define an `initMethod`. One way to do this is by using the `@Bean` annotation:
 
 ```java
 @Configuration
@@ -1198,15 +1218,142 @@ Please note that the same can also be done using XML configuration, which can be
 
 ### Choosing the Right Way to Initialize a Bean
 
-After a Spring bean is instantiated and its dependencies are injected, the Spring container calls any configured initialization logic in a defined order, allowing the bean to become fully ready for use.
-
 You might want to run custom initialization logic in different situations:
 * **Annotating a method with `@PostConstruct`:** I like this approach because it keeps the bean decoupled from Spring-specific interfaces, making the code cleaner and easier to maintain.
 * **Implementing `InitializingBean`:** This can be a good choice when you want your initialization logic to be tightly integrated with Spring and don’t mind depending on a Spring-specific interface.
 * **Specifying `initMethod`:** This can be useful when working with third-party classes or beans you don’t want to modify. You can either create your own initialization method or tell Spring to call an existing method after the bean is created.
 
+Spring calls initialization callbacks in a defined order:
+1. Methods annotated with `@PostConstruct`
+2. `InitializingBean.afterPropertiesSet()` if implemented
+3. The configured `initMethod`, if provided
+
 Choosing the right approach depends on your project style and whether you prefer annotations, interfaces, or configuration-based control.
 For me, `@PostConstruct` provides a simple and maintainable way to handle initialization in most modern Spring Boot applications.
+
+## Bean Destruction and Cleanup
+
+Just as Spring beans can perform setup tasks after being created, they can also perform cleanup when they are about to be destroyed.
+This cleanup phase allows beans to release resources, close connections, or perform any necessary shutdown operations before being removed from the container.
+
+Spring provides multiple mechanisms for defining destruction logic, depending on how you configure your beans.
+
+### Destruction Using Annotations
+
+The common and modern approach is to use the `@PreDestroy` annotation.
+This annotation marks a method that the Spring container will call before the bean is destroyed, typically when the application context is being closed for singleton beans.
+
+To use it simply annotate method as follows:
+```java
+@Component
+public class SomePreDestroyAnnotatedBean {
+
+    @PreDestroy
+    public void cleanup() {
+        System.out.println("SomePreDestroyAnnotatedBean is being destroyed");
+    }
+
+}
+```
+
+This method runs automatically when the application context is closed, for example, when a Spring Boot application shuts down.
+It’s a clean and non-invasive way to handle bean cleanup without tying your code to Spring-specific interfaces.
+
+### Destruction Using Interfaces
+
+Spring also offers the `DisposableBean` interface for beans that want to execute destruction logic in a more framework-integrated way.
+
+During the destruction phase of singleton beans, typically when the application context is shutting down, the Spring container calls the `destroy()` method of any bean that implements `DisposableBean`.
+
+To use it, implement the `DisposableBean` interface and define the `destroy()` method:
+
+```java
+@Component
+public class SomeDisposableBean implements DisposableBean {
+
+    @Override
+    public void destroy() throws Exception {
+        System.out.println("SomeDisposableBean is being destroyed");
+    }
+
+}
+```
+
+I find this useful when you need a direct hook into Spring’s lifecycle, such as when managing resources tightly coupled to the framework.
+
+### Destruction via @Bean Methods
+
+For beans declared with `@Bean` in Java configuration, you can specify a `destroyMethod`.
+This tells Spring which method to invoke before destroying the bean.
+
+To use it, define an `destroyMethod`. One way to do this is by using the `@Bean` annotation:
+
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean(destroyMethod = "customDestroy")
+    public SomeCustomDestroyBean someCustomDestroyBean() {
+        return new SomeCustomDestroyBean();
+    }
+}
+```
+
+And the bean class might look like this:
+
+```java
+public class SomeCustomDestroyBean {
+
+    public void customDestroy() {
+        System.out.println("Custom destruction logic executed");
+    }
+
+}
+```
+
+This approach works particularly well for third-party classes or libraries that need a custom shutdown method but cannot be annotated directly.
+
+As with initialization, XML configuration supports the same concept:
+
+```xml
+<bean id="someCustomDestroyBean" class="com.example.SomeCustomDestroyBean" destroy-method="customDestroy"/>
+```
+
+This can be handy for legacy applications or systems where XML configuration is still in use.
+
+### When Bean Destruction Happens
+
+Spring triggers destruction callbacks automatically in several situations:
+* **When the application context shuts down**: for example, during the shutdown of a Spring Boot application (`context.close()` or JVM termination).
+* **When the lifecycle of a scoped bean ends**: such as a request-scoped bean at the end of an HTTP request, or a session-scoped bean when the session expires.
+* **When a bean is explicitly removed from the container**: this can be done manually via `ConfigurableApplicationContext`, although it is uncommon in typical applications.
+
+When a singleton bean is destroyed, Spring invokes destruction callbacks in a specific order:
+1. Methods annotated with `@PreDestroy`
+2. `DisposableBean` `destroy()` if implemented
+3. The configured `destroyMethod`, if provided
+
+This order ensures that annotation-based cleanup runs first, Spring-specific lifecycle hooks run second, and configuration-based destruction runs last.
+
+Keep in mind that destruction callbacks do not apply to prototype beans.
+Prototype beans are not tracked after creation, so Spring does not call any destruction callbacks for them. Their cleanup must be handled manually.
+
+**Note:** Spring can automatically infer a destroy method by looking for a public `close()` or `shutdown()` method. `@Bean` methods in Java configuration use this behavior by default and work with beans implementing `java.lang.AutoCloseable` or `java.io.Closeable`, allowing cleanup without tying your code to Spring.
+
+See: [Customizing the Nature of a Bean](https://docs.spring.io/spring-framework/reference/7.0/core/beans/factory-nature.html)
+
+### Choosing the Right Way to Clean Up a Bean
+When deciding how to implement cleanup logic, consider your project’s style and dependencies:
+* **Using `@PreDestroy`:** I prefer this in most modern Spring Boot applications. It’s simple, annotation-based, and keeps your code decoupled from Spring-specific interfaces.
+* **Implementing `DisposableBean`:** This can be a good choice if you need lifecycle control tightly integrated with Spring or want explicit destruction hooks.
+* **Using `destroyMethod`:** This can be useful for third-party beans or when you want configuration-based control without modifying the class source.
+
+No matter which approach you choose, proper cleanup ensures that resources such as file handles, database connections, or threads are released safely.
+This helps prevent memory leaks and improves overall application stability.
+
+---
+
+For more details on working with beans and their lifecycle, please visit the [Spring Framework Documentation](https://docs.spring.io/spring-framework/).
 
 ## Disclaimer
 
@@ -1221,3 +1368,5 @@ THE DOCUMENTATION, OR THE USE OR OTHER DEALINGS IN THE SOFTWARE OR DOCUMENTATION
 
 Spring is a trademark of Broadcom Inc. and/or its subsidiaries. Spring Boot is a trademark of Broadcom Inc. and/or its subsidiaries.
 Oracle, Java, MySQL, and NetSuite are registered trademarks of Oracle and/or its affiliates. Other names may be trademarks of their respective owners.
+
+For Spring Framework documentation, please visit: https://docs.spring.io/spring-framework/.
