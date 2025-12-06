@@ -1,4 +1,4 @@
-# Spring Bean Explained: Lifecycle, Scopes, and Practical Examples
+# Spring Beans Explained: Configuration, IoC Container, Scopes, and Lifecycle
 
 Spring Beans are the core building blocks of any Spring Framework or Spring Boot application. A Spring Bean is an object whose creation, dependencies, and lifecycle are managed by the Spring container.
 
@@ -14,7 +14,7 @@ This repository provides practical examples showing how Spring Beans are created
 * **Annotations:** Using `@Component`, `@Service`, `@Repository`, and other Spring stereotypes.
 * **Practical Example:** A simple layered architecture example demonstrating Spring Beans in action.
 
-I hope this will help you understand and apply Spring Beans effectively 🙂
+I hope this helps you understand and use Spring Beans effectively 🙂
 
 ## Table of Contents
 
@@ -28,6 +28,7 @@ I hope this will help you understand and apply Spring Beans effectively 🙂
 * [Spring Bean Lifecycle](#spring-bean-lifecycle)
 * [Bean Creation and Initialization](#bean-creation-and-initialization)
 * [Bean Destruction and Cleanup](#bean-destruction-and-cleanup)
+* [Practical Example](#practical-example)
 * [Disclaimer](#disclaimer)
 
 ## What Is a Spring Bean?
@@ -1350,6 +1351,149 @@ When deciding how to implement cleanup logic, consider your project’s style an
 
 No matter which approach you choose, proper cleanup ensures that resources such as file handles, database connections, or threads are released safely.
 This helps prevent memory leaks and improves overall application stability.
+
+## Practical Example
+
+Let’s look at a concrete example.
+We’ll walk through how Spring Beans work together across the controller, service, and repository layers to handle a simple "get item by ID" request,
+while applying the concepts of bean initialization, dependency injection, and lifecycle management.
+
+The following example, from the `pl.kamilmazurek.example.item` package, shows how beans of different types collaborate to handle a typical use case.
+
+### 1. Controller Layer: Handling HTTP Requests
+
+In this example, the `@RestController` bean serves as the entry point for handling HTTP requests.
+`@RestController` is a specialized type of `@Controller` for REST APIs.
+It marks the class as a Spring-managed bean, which the IoC container automatically detects and instantiates.
+
+```java
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/items")
+public class ItemRestController {
+
+    private final ItemService itemService;
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ItemDTO> getItem(@PathVariable Long id) {
+        return itemService.getItem(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    }
+
+}
+```
+
+Key bean concepts in action:
+* `ItemRestController` is a singleton bean, created automatically at application startup.
+* `ItemService` is injected via constructor injection.
+* The controller bean is initialized once and reused for all incoming HTTP requests.
+
+### 2. Service Layer: Business Logic
+
+The service layer contains the application’s business logic.
+Here’s the corresponding `ItemService` bean:
+
+```java
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class ItemService {
+
+    private final ItemRepository itemRepository;
+
+    @PostConstruct
+    public void init() {
+        // some initialization logic can be added here
+        log.info("ItemService has been initialized");
+    }
+
+    public Optional<ItemDTO> getItem(Long id) {
+        return itemRepository.findById(id).map(ItemDTO::fromEntity);
+    }
+
+    @PreDestroy
+    public void cleanup() {
+        log.info("ItemService is shutting down");
+        // some cleanup logic can be added here
+    }
+
+}
+```
+
+Key bean concepts in action:
+* `@Service` registers the class as a Spring-managed bean.
+* Spring instantiates the bean and injects `ItemRepository` when the application context starts.
+* The `@PostConstruct` method runs after dependency injection for one-time initialization.
+* The bean stays active until the application context shuts down, at which point `@PreDestroy` executes.
+
+### 3. Repository Layer: Data Access
+
+The repository layer handles persistence logic.
+Spring Data JPA manages repository beans automatically, creating proxy implementations at runtime.
+
+```java
+@Repository
+public interface ItemRepository extends JpaRepository<ItemEntity, Long> {
+}
+```
+
+Key bean concepts in action:
+* `ItemRepository` is a singleton bean.
+* Spring Boot automatically detects it, generates an implementation at runtime, and injects it into the `ItemService` bean.
+
+### 4. Supporting classes: Entity and DTO
+
+To complete the flow, we define the entity and its corresponding DTO.
+```java
+@Data
+@Entity
+@Table(name = "items")
+public class ItemEntity {
+
+    @Id
+    private Long id;
+
+    private String name;
+
+}
+```
+```java
+public record ItemDTO(Long id, String name) {
+
+    public static ItemDTO fromEntity(ItemEntity entity) {
+        return new ItemDTO(entity.getId(), entity.getName());
+    }
+
+}
+```
+
+Key concepts in action:
+* `ItemEntity` represents the database table and is managed by JPA.
+* `ItemDTO` is a simple data transfer object used to send data from the service layer to the controller layer.
+* The `fromEntity` method converts the entity to its DTO representation, keeping layers decoupled.
+
+### 5. End-to-End Lifecycle Flow
+This example demonstrates how Spring Beans, dependency injection, scopes, and lifecycle management work together across a layered architecture:
+* The controller handles requests using injected service beans.
+* The service applies business logic and may run one-time initialization via `@PostConstruct`.
+* The repository abstracts persistence and is created automatically by Spring Data JPA.
+* The Spring container manages the entire lifecycle, allowing developers to focus on business logic instead of manual wiring.
+
+When the application starts, the Spring container instantiates beans, injects dependencies, and executes initialization methods.
+Beans handle incoming requests as needed, and the container calls destruction methods when the application shuts down.
+
+1. Application startup:
+   * Spring scans for annotated classes (`@RestController`, `@Service`, `@Repository`).
+   * Singleton beans are created (`ItemRestController`, `ItemService`, `ItemRepository`).
+   * Dependencies are injected automatically.
+   * `ItemService` executes its `@PostConstruct` initialization method.
+2. Handling a client request (`GET /items/{id}`):
+   * The controller bean handles the HTTP request.
+   * It delegates to the service bean, which applies business logic.
+   * The repository bean performs database access.
+   * Entities and DTOs flow through the layers, keeping each layer decoupled.
+3. Application shutdown:
+   * The Spring container gracefully destroys beans.
+   * Cleanup logic defined in `@PreDestroy` or `destroyMethod` hooks is executed.
 
 ---
 
