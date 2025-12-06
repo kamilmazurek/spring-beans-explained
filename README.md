@@ -1495,6 +1495,28 @@ Beans handle incoming requests as needed, and the container calls destruction me
    * The Spring container gracefully destroys beans.
    * Cleanup logic defined in `@PreDestroy` or `destroyMethod` hooks is executed.
 
+### 6. Try It: Sample Request and Response
+
+Once the application is running, you can test the API endpoint using curl or other HTTP client. For example:
+```
+curl -X GET http://localhost:8080/api/items/1
+```
+
+Expected JSON response:
+```
+{
+  "id": 1,
+  "name": "Item A"
+}
+```
+
+Key points in action:
+* `ItemRestController` receives the request.
+* The controller delegates the request to `ItemService`.
+* `ItemService` calls `ItemRepository` to fetch the `ItemEntity` from the database.
+* The entity is converted to `ItemDTO` and returned to the controller.
+* Spring serializes the `ItemDTO` into JSON for the HTTP response.
+
 ---
 
 For more details on working with beans and their lifecycle, please visit the [Spring Framework Documentation](https://docs.spring.io/spring-framework/).
