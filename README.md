@@ -29,6 +29,7 @@ I hope this helps you understand and use Spring Beans effectively 🙂
 * [Bean Creation and Initialization](#bean-creation-and-initialization)
 * [Bean Destruction and Cleanup](#bean-destruction-and-cleanup)
 * [Practical Example](#practical-example)
+* [Additional Resources](#additional-resources)
 * [Disclaimer](#disclaimer)
 
 ## What Is a Spring Bean?
@@ -1074,23 +1075,23 @@ Notes about WebSocket-scoped beans:
 
 Here are my thoughts:
 * **Singleton:**
-    * Useful for stateless services, shared utilities, or beans that do not maintain per-request state.
-    * Example: A `NotificationService` that sends emails or push notifications, where a single shared instance is sufficient for the entire application.
+  * Useful for stateless services, shared utilities, or beans that do not maintain per-request state.
+  * Example: A `NotificationService` that sends emails or push notifications, where a single shared instance is sufficient for the entire application.
 * **Prototype:**
-    * Useful when a new instance is needed each time the bean is requested.
-    * Example: A `ReportGenerator` bean that holds temporary data while creating a report. Each request (for example, via `ObjectProvider`) should obtain a fresh instance.
+  * Useful when a new instance is needed each time the bean is requested.
+  * Example: A `ReportGenerator` bean that holds temporary data while creating a report. Each request (for example, via `ObjectProvider`) should obtain a fresh instance.
 * **Request:**
-    * Useful for web applications where a bean should exist only for a single HTTP request.
-    * Example: A `UserRequestLogger` that collects request-specific info for auditing or metrics.
+  * Useful for web applications where a bean should exist only for a single HTTP request.
+  * Example: A `UserRequestLogger` that collects request-specific info for auditing or metrics.
 * **Session:**
-    * Useful for maintaining user-specific state across multiple HTTP requests.
-    * Example: A `ShoppingCart` bean that keeps track of items a user adds during their session.
+  * Useful for maintaining user-specific state across multiple HTTP requests.
+  * Example: A `ShoppingCart` bean that keeps track of items a user adds during their session.
 * **Application:**
-    * Useful for global resources shared across the entire web application.
-    * Example: A `CacheManager` or `ApplicationConfig` bean that stores configuration or cached data accessible to all users.
+  * Useful for global resources shared across the entire web application.
+  * Example: A `CacheManager` or `ApplicationConfig` bean that stores configuration or cached data accessible to all users.
 * **WebSocket:**
-    * Useful for WebSocket sessions where state persists during real-time communication for a single WebSocket connection.
-    * Example: A `ChatSessionService` that maintains the message history for each user during a live chat session.
+  * Useful for WebSocket sessions where state persists during real-time communication for a single WebSocket connection.
+  * Example: A `ChatSessionService` that maintains the message history for each user during a live chat session.
 
 Personally, I like to choose the bean scope based on how it will be used: singleton for shared, stateless services, and request, session, or prototype scopes only when per-instance or per-user state is needed.
 This approach helps me avoid memory issues, keeps things thread-safe, and makes the code easier to manage.
@@ -1125,7 +1126,7 @@ The simplified flow below provides a high-level view of how a Spring bean transi
 Instantiation → Dependency Injection → Aware Interfaces → BeanPostProcessor (Before Initialization) → Initialization → BeanPostProcessor (After Initialization) → Ready for Use → Destruction
 ```
 
-During these phases, Spring allows developers to hook into the bean lifecycle using annotations (e.g., `@PostConstruct`, `@PreDestroy`), interfaces (e.g., `InitializingBean`, `DisposableBean`), or configuration options (custom `init-method` and `destroy-method`) to execute custom logic.  
+During these phases, Spring allows developers to hook into the bean lifecycle using annotations (e.g., `@PostConstruct`, `@PreDestroy`), interfaces (e.g., `InitializingBean`, `DisposableBean`), or configuration options (custom `init-method` and `destroy-method`) to execute custom logic.
 
 These mechanisms are explained in the next sections:
 * [Bean Creation and Initialization](#bean-creation-and-initialization)
@@ -1517,9 +1518,20 @@ Key points in action:
 * The entity is converted to `ItemDTO` and returned to the controller.
 * Spring serializes the `ItemDTO` into JSON for the HTTP response.
 
----
+## Additional Resources
 
-For more details on working with beans and their lifecycle, please visit the [Spring Framework Documentation](https://docs.spring.io/spring-framework/).
+For more details on working with Spring beans and their lifecycle, see the [Spring Framework Documentation](https://docs.spring.io/spring-framework/).
+
+If you’d like to see practical architecture templates, these may be useful:
+* [Layered Architecture Template](https://kamilmazurek.pl/layered-architecture-template)
+* [Hexagonal Architecture Template](https://kamilmazurek.pl/hexagonal-architecture-template)
+
+Other links you may find helpful:
+* [Introduction to the Spring IoC Container and Beans](https://docs.spring.io/spring-framework/reference/core/beans/introduction.html)
+* [Bean Overview](https://docs.spring.io/spring-framework/reference/core/beans/definition.html)
+* [Bean Scopes](https://docs.spring.io/spring-framework/reference/core/beans/factory-scopes.html)
+* [Annotation-based Container Configuration](https://docs.spring.io/spring-framework/reference/core/beans/annotation-config.html)
+* [Java-based Container Configuration](https://docs.spring.io/spring-framework/reference/core/beans/java.html)
 
 ## Disclaimer
 
