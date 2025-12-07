@@ -14,7 +14,30 @@ This repository provides practical examples showing how Spring Beans are created
 * **Annotations:** Using `@Component`, `@Service`, `@Repository`, and other Spring stereotypes.
 * **Practical Example:** A simple layered architecture example demonstrating Spring Beans in action.
 
-I hope this helps you understand and use Spring Beans effectively 🙂
+I hope this helps you understand Spring Beans and use them effectively 🙂
+
+## Quickstart
+
+Following steps provide a quick way to get started with examples:
+
+1. Ensure a JDK is available to build and run the code. Temurin, based on OpenJDK and available from [adoptium.net](https://adoptium.net/), can be used for this purpose.
+2. Download the source code either by cloning the repository with Git or by downloading the ZIP file. If you downloaded the ZIP, extract it. Then navigate to the spring-beans-explained folder.
+3. Start the application:
+    ```shell
+    mvnw spring-boot:run
+    ```
+4. Verify that the application is running by sending a GET request to the following URL (you can simply open it in a browser):
+    ```console
+    http://localhost:8080/api/items/1
+    ```
+   The following item should be returned in the response:
+    ```json
+    {
+      "id": 1,
+      "name": "Item A"
+    }
+    ```
+5. Keep on reading to see how this works 🚀.
 
 ## Table of Contents
 
@@ -1483,19 +1506,21 @@ This example demonstrates how Spring Beans, dependency injection, scopes, and li
 When the application starts, the Spring container instantiates beans, injects dependencies, and executes initialization methods.
 Beans handle incoming requests as needed, and the container calls destruction methods when the application shuts down.
 
-1. Application startup:
-   * Spring scans for annotated classes (`@RestController`, `@Service`, `@Repository`).
-   * Singleton beans are created (`ItemRestController`, `ItemService`, `ItemRepository`).
-   * Dependencies are injected automatically.
-   * `ItemService` executes its `@PostConstruct` initialization method.
-2. Handling a client request (`GET /items/{id}`):
-   * The controller bean handles the HTTP request.
-   * It delegates to the service bean, which applies business logic.
-   * The repository bean performs database access.
-   * Entities and DTOs flow through the layers, keeping each layer decoupled.
-3. Application shutdown:
-   * The Spring container gracefully destroys beans.
-   * Cleanup logic defined in `@PreDestroy` or `destroyMethod` hooks is executed.
+**Application startup:**
+* Spring scans for annotated classes (`@RestController`, `@Service`, `@Repository`).
+* Singleton beans are created (`ItemRestController`, `ItemService`, `ItemRepository`).
+* Dependencies are injected automatically.
+* `ItemService` executes its `@PostConstruct` initialization method.
+
+**Handling a client request:**
+* The controller bean handles the HTTP request (`GET /items/{id}`).
+* It delegates to the service bean, which applies business logic.
+* The repository bean performs database access.
+* Entities and DTOs flow through the layers, keeping them decoupled.
+
+**Application shutdown:**
+* The Spring container gracefully destroys beans.
+* Cleanup logic defined in `@PreDestroy` or `destroyMethod` hooks is executed.
 
 ### 6. Try It: Sample Request and Response
 
