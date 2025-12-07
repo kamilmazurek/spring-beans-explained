@@ -67,7 +67,7 @@ This management allows developers to focus on business logic rather than on obje
 Spring creates and manages beans based on how developers define them.
 One of the most common ways is to use the `@Bean` annotation inside a class annotated with `@Configuration`:
 
-Below is an example that you can find in the `pl.kamilmazurek.example.mybean` package.
+Below is an example that you can find in the `pl.kamilmazurek.example.beans.mybean` package.
 
 ```java
 @Configuration
@@ -107,7 +107,7 @@ mvnw spring-boot:run
 You should then see a log entry like this:
 
 ```
-INFO  pl.kamilmazurek.example.mybean.MyBean: MyBean instance create
+INFO  pl.kamilmazurek.example.beans.mybean.MyBean: MyBean instance create
 ```
 
 This approach enables loose coupling, easier testing, and more maintainable applications.
@@ -132,7 +132,7 @@ Here’s why I find Spring Beans so helpful:
 
 Spring Beans are powerful, but their benefits might not be obvious at first. Here is a practical example that starts with a simple `System.out`, then moves to using Spring Beans, and finally exposes functionality through a REST API with just a few lines of code.
 
-Below is an example that you can find in the `pl.kamilmazurek.example.greeting` package.
+Below is an example that you can find in the `pl.kamilmazurek.example.beans.greeting` package.
 
 Let’s say we want our application to display a greeting message.
 
@@ -264,7 +264,7 @@ Dependencies between beans can be configured in multiple ways, including:
 
 To better understand the concept, let’s see how it can be done using a `@Configuration` class.
 
-Below is an example that you can find in the `pl.kamilmazurek.example.time` package.
+Below is an example that you can find in the `pl.kamilmazurek.example.beans.time` package.
 
 Suppose we have a simple `TimeProvider` class that returns the current time:
 
@@ -349,7 +349,7 @@ mvnw spring-boot:run
 You should then see a log entry similar to the following:
 
 ```
-INFO  pl.kamilmazurek.example.time.TimeLogger: Current time: 2025-11-23T22:23:59.74784280
+INFO  pl.kamilmazurek.example.beans.time.TimeLogger: Current time: 2025-12-07T19:37:52.921718300
 ```
 
 The classes don’t construct or pass dependencies themselves. They simply declare what they need, and the IoC container provides it.
@@ -380,7 +380,7 @@ To achieve this, developers typically use [Spring Stereotypes](#spring-stereotyp
 * **@Controller:** Identifies a class that handles web requests in Spring MVC applications.
 * **@RestController:** Combination of `@Controller` and `@ResponseBody`, typically used for RESTful web services.
 
-Below is an example from the `pl.kamilmazurek.example.user` package that demonstrates how to define a `UserService` and inject a `UserRepository` into it using annotations and constructor-based injection.
+Below is an example from the `pl.kamilmazurek.example.beans.user` package that demonstrates how to define a `UserService` and inject a `UserRepository` into it using annotations and constructor-based injection.
 
 In this example, the `UserService` receives a `UserRepository` through its constructor. It then fetches all existing users and logs their usernames:
 
@@ -472,7 +472,7 @@ public class Runner implements ApplicationRunner {
 As a result, after running the application with `mvnw spring-boot:run`, you should see a log entry like:
 
 ```
-INFO  pl.kamilmazurek.example.user.UserService: Existing users: test-user-a, test-user-b, test-user-c
+INFO  pl.kamilmazurek.example.beans.user.UserService: Existing users: test-user-a, test-user-b, test-user-c
 ```
 
 **Note:** Spring Boot automatically performs component scanning for the package containing the main application class (and its subpackages).
@@ -494,7 +494,7 @@ That said, in very large applications, extensive use of automatic scanning can m
 Java-based configuration defines beans using dedicated configuration classes annotated with `@Configuration` and methods annotated with `@Bean`.
 This approach provides a clear and type-safe way to configure beans without relying on XML or component scanning.
 
-As shown in the [Dependency Injection and Spring Beans](#dependency-injection-and-spring-beans) section, the `TimeConfiguration` class in the `pl.kamilmazurek.example.time` package demonstrates how to define beans and wire their dependencies using `@Bean` methods.
+As shown in the [Dependency Injection and Spring Beans](#dependency-injection-and-spring-beans) section, the `TimeConfiguration` class in the `pl.kamilmazurek.example.beans.time` package demonstrates how to define beans and wire their dependencies using `@Bean` methods.
 
 ```java
 @Configuration
@@ -526,17 +526,18 @@ This approach allowed developers to explicitly declare each bean and its depende
 The XML configuration below reflects the same setup as the previously shown `TimeConfiguration` example:
 
 ```xml
+
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="
            http://www.springframework.org/schema/beans
            https://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="timeProvider" class="pl.kamilmazurek.example.time.TimeProvider"/>
+  <bean id="timeProvider" class="pl.kamilmazurek.example.beans.time.TimeProvider"/>
 
-    <bean id="timeLogger" class="pl.kamilmazurek.example.time.TimeLogger">
-        <constructor-arg ref="timeProvider"/>
-    </bean>
+  <bean id="timeLogger" class="pl.kamilmazurek.example.beans.time.TimeLogger">
+    <constructor-arg ref="timeProvider"/>
+  </bean>
 
 </beans>
 ```
@@ -580,7 +581,7 @@ These annotations allow Spring to automatically detect and register classes as b
 A basic building block of this mechanism is the `@Component` annotation, which serves as a generic stereotype for any Spring-managed component.
 Spring also provides specialized annotations built on top of `@Component`. These help organize classes by their responsibilities, making the application structure clearer and easier to maintain.
 
-The following example from the `pl.kamilmazurek.example.order` package demonstrates how beans of different types, defined with multiple stereotypes, work together in practice.
+The following example from the `pl.kamilmazurek.example.beans.order` package demonstrates how beans of different types, defined with multiple stereotypes, work together in practice.
 
 ### @Component
 
@@ -1210,12 +1211,12 @@ To use it, define an `initMethod`. One way to do this is by using the `@Bean` an
 
 ```java
 @Configuration
-public class AppConfig {
+public class MyCustomInitConfiguration {
 
-  @Bean(initMethod = "customInit")
-  public MyCustomInitBean myCustomInitBean() {
-    return new MyCustomInitBean();
-  }
+    @Bean(initMethod = "customInit")
+    public MyCustomInitBean myCustomInitBean() {
+        return new MyCustomInitBean();
+    }
 
 }
 ```
@@ -1223,11 +1224,12 @@ public class AppConfig {
 And in the `MyCustomInitBean` class:
 
 ```java
+@Slf4j
 public class MyCustomInitBean {
 
-  public void customInit() {
-    System.out.println("Custom initialization logic executed");
-  }
+    public void customInit() {
+        log.info("Custom initialization method invoked");
+    }
 
 }
 ```
@@ -1239,7 +1241,7 @@ This approach works well for classes you cannot or prefer not to modify.
 Please note that the same can also be done using XML configuration, which can be especially useful for legacy systems, for example:
 
 ```xml
-<bean id="myCustomInitBean" class="pl.kamilmazurek.example.MyCustomInitBean" init-method="customInit"/>
+<bean id="myCustomInitBean" class="pl.kamilmazurek.example.beans.mybean.MyCustomInitBean" init-method="customInit"/>
 ```
 
 ### Choosing the Right Way to Initialize a Bean
@@ -1383,7 +1385,7 @@ Let’s look at a concrete example.
 We’ll walk through how Spring Beans work together across the controller, service, and repository layers to handle a simple "get item by ID" request,
 while applying the concepts of bean initialization, dependency injection, and lifecycle management.
 
-The following example, from the `pl.kamilmazurek.example.item` package, shows how beans of different types collaborate to handle a typical use case.
+The following example, from the `pl.kamilmazurek.example.beans.item` package, shows how beans of different types collaborate to handle a typical use case.
 
 ### 1. Controller Layer: Handling HTTP Requests
 
