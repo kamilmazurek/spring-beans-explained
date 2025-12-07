@@ -30,6 +30,7 @@ I hope this helps you understand and use Spring Beans effectively 🙂
 * [Bean Destruction and Cleanup](#bean-destruction-and-cleanup)
 * [Practical Example](#practical-example)
 * [Additional Resources](#additional-resources)
+* [Author](#author)
 * [Disclaimer](#disclaimer)
 
 ## What Is a Spring Bean?
@@ -1532,6 +1533,10 @@ Other links you may find helpful:
 * [Bean Scopes](https://docs.spring.io/spring-framework/reference/core/beans/factory-scopes.html)
 * [Annotation-based Container Configuration](https://docs.spring.io/spring-framework/reference/core/beans/annotation-config.html)
 * [Java-based Container Configuration](https://docs.spring.io/spring-framework/reference/core/beans/java.html)
+
+## Author
+This guide and the accompanying example code were created by [Kamil Mazurek](https://kamilmazurek.pl), a Software Engineer based in Warsaw, Poland.
+You can also find me on my [LinkedIn profile](https://www.linkedin.com/in/kamil-mazurek). Thanks for visiting 🙂
 
 ## Disclaimer
 
