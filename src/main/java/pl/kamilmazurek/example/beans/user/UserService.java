@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 public class UserService {
+    
     private final UserRepository userRepository;
 
     public UserService(UserRepository userRepository) {

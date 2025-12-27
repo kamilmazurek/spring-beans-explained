@@ -14,11 +14,11 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.util.List;
 
-@Entity
-@Table(name = "orders")
 @Data
+@Entity
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "orders")
 public class OrderEntity {
 
     @Id
