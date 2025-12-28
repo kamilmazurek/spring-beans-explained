@@ -1627,6 +1627,7 @@ Other links you may find helpful:
 * [Bean Scopes](https://docs.spring.io/spring-framework/reference/core/beans/factory-scopes.html)
 * [Annotation-based Container Configuration](https://docs.spring.io/spring-framework/reference/core/beans/annotation-config.html)
 * [Java-based Container Configuration](https://docs.spring.io/spring-framework/reference/core/beans/java.html)
+* [Spring Beans Explained on LibHunt](https://www.libhunt.com/r/spring-beans-explained) 
 
 ## Author
 This guide and the accompanying example code were created by [Kamil Mazurek](https://kamilmazurek.pl), a Software Engineer based in Warsaw, Poland.
