@@ -1,3 +1,6 @@
+> This documentation is also available in an enhanced form at
+> [Spring Beans Explained](https://kamilmazurek.pl/spring-beans-explained) page.
+
 # Spring Beans Explained: Configuration, IoC Container, Scopes, and Lifecycle
 
 Spring Beans are the core building blocks of any Spring Framework or Spring Boot application. A Spring Bean is an object whose creation, dependencies, and lifecycle are managed by the Spring container.
