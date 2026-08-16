@@ -3,6 +3,8 @@
 
 # Spring Beans Explained: Configuration, IoC Container, Scopes, and Lifecycle
 
+[![Build](https://github.com/kamilmazurek/spring-beans-explained/actions/workflows/build.yml/badge.svg)](https://github.com/kamilmazurek/spring-beans-explained/actions/workflows/build.yml)
+
 Spring Beans are the core building blocks of any Spring Framework or Spring Boot application. A Spring Bean is an object whose creation, dependencies, and lifecycle are managed by the Spring container.
 For developers, understanding how beans are instantiated, initialized, and destroyed as well as how to configure their scope is essential for building modular, maintainable, and testable applications.
 
