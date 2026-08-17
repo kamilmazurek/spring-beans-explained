@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 public class UserService {
-    
+
     private final UserRepository userRepository;
 
     public UserService(UserRepository userRepository) {
@@ -15,7 +15,11 @@ public class UserService {
 
     public void logExistingUsers() {
         var users = userRepository.findAll().stream().map(UserEntity::getLogin).toList();
-        log.info("Existing users: " + String.join(", ", users));
-    }
 
+        if (users.isEmpty()) {
+            log.info("No users found.");
+        } else {
+            log.info("Existing users: " + String.join(", ", users));
+        }
+    }
 }
