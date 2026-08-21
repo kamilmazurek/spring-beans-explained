@@ -4,6 +4,7 @@
 # Spring Beans Explained: Configuration, IoC Container, Scopes, and Lifecycle
 
 [![Build](https://github.com/kamilmazurek/spring-beans-explained/actions/workflows/build.yml/badge.svg)](https://github.com/kamilmazurek/spring-beans-explained/actions/workflows/build.yml)
+[![codecov](https://codecov.io/gh/kamilmazurek/spring-beans-explained/graph/badge.svg?token=YE5HA92GHX)](https://codecov.io/gh/kamilmazurek/spring-beans-explained)
 
 Spring Beans are the core building blocks of any Spring Framework or Spring Boot application. A Spring Bean is an object whose creation, dependencies, and lifecycle are managed by the Spring container.
 For developers, understanding how beans are instantiated, initialized, and destroyed as well as how to configure their scope is essential for building modular, maintainable, and testable applications.
@@ -105,6 +106,8 @@ public class MyBean {
 Here, `MyBean` is a Spring Bean. When the application starts, Spring detects the `@Configuration` class, calls the `myBean()` method, and registers its return value as a managed bean in the IoC container.
 Once registered, the bean becomes available for dependency injection throughout the application, so it can be injected into other beans or components, e.g. by using `@Autowired` or constructor injection.
 
+This approach enables loose coupling, easier testing, and more maintainable applications.
+
 If you want to verify that it works and the bean is actually created, you can start the application with:
 
 ```bash
@@ -116,8 +119,6 @@ Then, in the logs, you should be able to find an entry like this:
 ```
 INFO  pl.kamilmazurek.example.beans.mybean.MyBean: MyBean instance created
 ```
-
-This approach enables loose coupling, easier testing, and more maintainable applications.
 
 A Spring Bean typically:
 * Is a POJO (Plain Old Java Object) registered with the Spring container.
