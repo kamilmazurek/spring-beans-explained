@@ -215,12 +215,12 @@ public class GreeterRestController {
 }
 ```
 
-To make this work, Spring Boot Web Starter can be used, for example, by including the dependency in `pom.xml`:
+To make this work, Spring Boot Web MVC Starter can be used, for example, by including the dependency in `pom.xml`:
 
 ```xml
 <dependency>
     <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-web</artifactId>
+    <artifactId>spring-boot-starter-webmvc</artifactId>
 </dependency>
 ```
 
